@@ -1,0 +1,32 @@
+﻿{
+  "": "http://json-schema.org/draft-07/schema#",
+  "title": "Q2LMS Question Schema",
+  "description": "JSON schema for Q2LMS questions",
+  "type": "object",
+  "properties": {
+    "questions": {
+      "type": "array",
+      "items": {
+        "": "#/definitions/question"
+      }
+    }
+  },
+  "definitions": {
+    "question": {
+      "type": "object",
+      "required": ["type", "title", "question_text", "correct_answer", "topic", "difficulty"],
+      "properties": {
+        "type": {
+          "enum": ["multiple_choice", "numerical", "true_false", "fill_in_multiple_blanks"]
+        },
+        "title": {"type": "string"},
+        "question_text": {"type": "string"},
+        "correct_answer": {"type": ["string", "number"]},
+        "topic": {"type": "string"},
+        "difficulty": {
+          "enum": ["Easy", "Medium", "Hard"]
+        }
+      }
+    }
+  }
+}

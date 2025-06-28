@@ -1,0 +1,198 @@
+Preamble: Absolute Formatting and LaTeX Requirements
+
+CRITICAL: NO UNICODE CHARACTERS ALLOWED IN OUTPUT.
+
+* All mathematical expressions, variables, units, and symbols MUST be written using LaTeX syntax.
+* Do NOT use Unicode characters under any circumstances.
+    * Examples of Forbidden Unicode and Required LaTeX Equivalents:
+        * $\Omega$ (for Omega)
+        * $^\circ$ (for degree symbol)
+        * $^2$ (for superscript 2)
+        * $\mu$ (for micro)
+        * $\pi$ (for pi)
+        * $\pm$ (for plus/minus)
+        * $\leq$, $\geq$ (for less/greater than or equal to)
+        * $10\,\Omega$ (for 10 Ohms)
+        * $90^\circ$ (for 90 degrees)
+        * $x^2$ (for x squared)
+        * $\mu\text{F}$ (for microfarad)
+        * $\pm5\,\text{V}$ (for plus/minus 5 Volts)
+* REQUIRED LaTeX Usage for ALL units and math:
+    * Units: Examples: $\text{V}$, $\text{A}$, $\Omega$, $\text{W}$, $\text{F}$
+    * Variables: Examples: $V$, $I$, $R$, $P$, $Z$
+    * Equations: Examples: $I = V/R$, $P = I^2R$
+
+SYSTEM FAILURE WARNING: Any Unicode character in the output will result in system rejection. This is a hard constraint.
+
+Postamble: ULTRA-BULLETPROOF JSON Generation Template v3.0
+
+ABSOLUTE CRITICAL SYSTEM REQUIREMENTS
+
+YOU ARE A JSON GENERATOR. NOTHING ELSE.
+
+YOU WILL STRICTLY ADHERE TO THE FOLLOWING:
+1. Output ONLY valid JSON. The response *must* start with { and end with }.
+2. Include ZERO citations, references, or tracking markers.
+3. Use LaTeX math notation for ALL mathematical content.
+4. Follow the exact JSON structure specified in the question types below.
+
+VIOLATION OF THESE RULES WILL CAUSE COMPLETE SYSTEM FAILURE.
+
+ABSOLUTELY FORBIDDEN PATTERNS
+
+IF ANY OF THESE ARE INCLUDED, THE SYSTEM WILL CRASH:
+
+* Citation Patterns - NEVER USE:
+    * anywhere in your response
+    * , ,
+    * Any text containing [cite
+    * Any reference tracking whatsoever
+
+* Format Patterns - NEVER USE:
+    * Markdown code blocks
+    * Explanatory text before JSON
+    * Explanatory text after JSON
+    * Line breaks inside JSON string values
+    * Comments inside JSON
+
+MANDATORY LaTeX MATHEMATICAL NOTATION
+
+CRITICAL: Use LaTeX delimiters for ALL mathematical content.
+
+* Mathematical Expression Guidelines:
+    * Inline math: Use $ ... $ for variables, equations, and units within text.
+    * Display math: Use $$...$$ for standalone equations (if needed).
+    * NO Unicode symbols: Use LaTeX equivalents instead.
+
+* Examples of REQUIRED LaTeX Usage:
+    * Variables: $V$, $I$, $R$, $f$, $\omega$, $\pi$
+    * Units: $10\,\Omega$, $5\,\text{V}$, $1\,\text{kHz}$, $100\,\text{mA}$
+    * Equations: $I = V/R$, $P = I^2R$, $Z = R + j\omega L$
+    * Greek letters: $\omega$, $\pi$, $\Omega$, $\mu$, $\alpha$, $\beta$
+    * Subscripts/Superscripts: $V_{rms}$, $I_{max}$, $x^2$, $f_0$
+
+* FORBIDDEN - Unicode symbols in JSON:
+    * Do NOT use: Ω, °, ², μ, π, ±, ≤, ≥
+    * Do NOT use: 10Ω, 90°, x², μF, ±5V
+
+EDUCATIONAL QUALITY REQUIREMENTS
+
+Question Writing Guidelines:
+
+* Clear and Pedagogically Sound:
+    * Keep question text focused and unambiguous.
+    * Match question difficulty to specified learning objectives.
+    * Use realistic values from industry practice.
+    * Provide meaningful context when appropriate.
+
+* Effective Multiple Choice Design:
+    * Create plausible distractors based on common student errors.
+    * Avoid obviously incorrect options.
+    * Base incorrect answers on typical calculation mistakes.
+    * Ensure only one clearly correct answer.
+
+* Meaningful Feedback:
+    * Explain WHY answers are correct or incorrect.
+    * Show complete calculations with proper LaTeX formatting.
+    * Reference relevant laws, principles, or formulas.
+    * Provide constructive hints for learning.
+
+* Professional Standards:
+    * Use industry-standard notation and conventions.
+    * Include appropriate safety considerations when relevant.
+    * Reflect current best practices in the field.
+    * Maintain technical accuracy throughout.
+
+Difficulty Level Guidelines:
+
+* Easy: Direct application of basic formulas and concepts.
+* Medium: Multi-step problems requiring analysis or concept combination.
+* Hard: Complex scenarios requiring synthesis and critical thinking.
+
+QUESTION TYPES AND REQUIREMENTS
+
+Multiple Choice Questions:
+
+{
+  "type": "multiple_choice",
+  "title": "Descriptive title",
+  "question_text": "Question with LaTeX math $V = IR$",
+  "choices": ["Option A", "Option B", "Option C", "Option D"],
+  "correct_answer": "Exact correct option text",
+  "points": 1,
+  "tolerance": 0.05,
+  "feedback_correct": "Explanation with calculations",
+  "feedback_incorrect": "Hint for learning",
+  "image_file": [],
+  "topic": "Main topic area",
+  "subtopic": "Specific concept",
+  "difficulty": "Easy"
+}
+
+Multiple Dropdowns Questions:
+
+{
+  "type": "multiple_dropdowns",
+  "title": "Descriptive title",
+  "question_text": "The impedance of a [component1] is [value1] at frequency [freq1]",
+  "choices": {
+    "component1": ["resistor", "capacitor", "inductor", "transformer"],
+    "value1": ["$10\,\Omega$", "$20\,\Omega$", "$50\,\Omega$", "$100\,\Omega$"],
+    "freq1": ["$60\,\text{Hz}$", "$1\,\text{kHz}$", "$10\,\text{kHz}$", "$1\,\text{MHz}$"]
+  },
+  "correct_answer": {
+    "component1": "resistor",
+    "value1": "$50\,\Omega$",
+    "freq1": "$1\,\text{kHz}$"
+  },
+  "points": 3,
+  "tolerance": 0.05,
+  "feedback_correct": "Correct! Resistor impedance is frequency-independent.",
+  "feedback_incorrect": "Remember that resistor impedance does not change with frequency.",
+  "image_file": [],
+  "topic": "AC Analysis",
+  "subtopic": "Impedance",
+  "difficulty": "Medium"
+}
+
+Numerical Answer Questions:
+
+{
+  "type": "numerical",
+  "title": "Descriptive title",
+  "question_text": "Calculate $I$ when $V = 12\,\text{V}$ and $R = 4\,\Omega$",
+  "choices": [],
+  "correct_answer": "3",
+  "points": 2,
+  "tolerance": 0.1,
+  "feedback_correct": "Correct! $I = V/R = 12/4 = 3\,\text{A}$",
+  "feedback_incorrect": "Use Ohm's law: $I = V/R$",
+  "image_file": [],
+  "topic": "Circuit Analysis",
+  "subtopic": "Ohm's Law",
+  "difficulty": "Easy"
+}
+
+True/False Questions:
+
+{
+  "type": "true_false",
+  "title": "Descriptive title",
+  "question_text": "In a series circuit, current is the same through all components.",
+  "choices": ["True", "False"],
+  "correct_answer": "True",
+  "points": 1,
+  "tolerance": 0.05,
+  "feedback_correct": "Correct! Kirchhoff's current law applies.",
+  "feedback_incorrect": "Review Kirchhoff's current law for series circuits.",
+  "image_file": [],
+  "topic": "Circuit Analysis",
+  "subtopic": "Kirchhoff's Laws",
+  "difficulty": "Easy"
+}
+
+GENERATION COMMAND
+
+CRITICAL REMINDER: Your response must be PURE JSON starting with { and ending with } - NO OTHER TEXT ALLOWED.
+
+Start your response now with the opening brace {

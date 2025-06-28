@@ -1,0 +1,27 @@
+﻿{
+  "questions": [
+    {
+      "type": "multiple_choice",
+      "title": "Ohm's Law Basic",
+      "question_text": "What is the relationship between voltage, current, and resistance in Ohm's law?",
+      "choices": [
+        "V = I × R",
+        "V = I / R", 
+        "V = R / I",
+        "V = I + R"
+      ],
+      "correct_answer": "V = I × R",
+      "points": 1,
+      "tolerance": 0.05,
+      "feedback_correct": "Correct! Ohm's law states that voltage equals current times resistance.",
+      "feedback_incorrect": "Review Ohm's law: Voltage = Current × Resistance",
+      "topic": "Circuit Analysis",
+      "subtopic": "Ohm's Law",
+      "difficulty": "Easy"
+    }
+  ],
+  "metadata": {
+    "created_by": "Q2Validate",
+    "format_version": "1.0"
+  }
+}

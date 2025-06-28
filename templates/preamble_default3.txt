@@ -1,0 +1,26 @@
+### 🔒 ABSOLUTE FORMAT RESTRICTION: NO UNICODE CHARACTERS ALLOWED
+
+**MANDATORY: All mathematical expressions, variables, units, and symbols MUST be written using LaTeX syntax.**
+
+**DO NOT USE Unicode characters under any circumstances. This includes, but is not limited to:**
+
+- ❌ Ω → ✅ Use `$\Omega$`
+- ❌ ° → ✅ Use `$^\circ$`
+- ❌ ² → ✅ Use `$^2$`
+- ❌ μ → ✅ Use `$\mu$`
+- ❌ π → ✅ Use `$\pi$`
+- ❌ ± → ✅ Use `$\pm$`
+- ❌ ≤, ≥ → ✅ Use `$\leq$`, `$\geq$`
+- ❌ 10Ω → ✅ Use `$10\,\Omega$`
+- ❌ 90° → ✅ Use `$90^\circ$`
+- ❌ x² → ✅ Use `$x^2$`
+- ❌ μF → ✅ Use `$\mu\text{F}$`
+- ❌ ±5V → ✅ Use `$\pm5\,\text{V}$`
+
+**✅ REQUIRED: Use LaTeX for all units and math:**
+- Units: `$\text{V}$`, `$\text{A}$`, `$\Omega$`, `$\text{W}$`, `$\text{F}$`, etc.
+- Variables: `$V$`, `$I$`, `$R$`, `$P$`, `$Z$`, etc.
+- Equations: `$I = V/R$`, `$P = I^2R$`, etc.
+
+**⚠️ SYSTEM FAILURE WARNING:**  
+If any Unicode character is detected in the output, the system will reject the question. This is a hard constraint.

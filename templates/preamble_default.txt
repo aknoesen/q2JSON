@@ -1,0 +1,25 @@
+Absolute Formatting and LaTeX Requirements
+
+CRITICAL: NO UNICODE CHARACTERS ALLOWED IN OUTPUT.
+
+* All mathematical expressions, variables, units, and symbols MUST be written using LaTeX syntax.
+* Do NOT use Unicode characters under any circumstances.
+    * Examples of Forbidden Unicode and Required LaTeX Equivalents:
+        * $\Omega$ (for Omega)
+        * $^\circ$ (for degree symbol)
+        * $^2$ (for superscript 2)
+        * $\mu$ (for micro)
+        * $\pi$ (for pi)
+        * $\pm$ (for plus/minus)
+        * $\leq$, $\geq$ (for less/greater than or equal to)
+        * $10\,\Omega$ (for 10 Ohms)
+        * $90^\circ$ (for 90 degrees)
+        * $x^2$ (for x squared)
+        * $\mu\text{F}$ (for microfarad)
+        * $\pm5\,\text{V}$ (for plus/minus 5 Volts)
+* REQUIRED LaTeX Usage for ALL units and math:
+    * Units: Examples: $\text{V}$, $\text{A}$, $\Omega$, $\text{W}$, $\text{F}$
+    * Variables: Examples: $V$, $I$, $R$, $P$, $Z$
+    * Equations: Examples: $I = V/R$, $P = I^2R$
+
+SYSTEM FAILURE WARNING: Any Unicode character in the output will result in system rejection. This is a hard constraint.

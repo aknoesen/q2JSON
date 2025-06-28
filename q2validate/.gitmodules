@@ -1,0 +1,3 @@
+[submodule "shared/q2lms"]
+	path = shared/q2lms
+	url = https://github.com/aknoesen/q2lms.git

@@ -1,0 +1,153 @@
+{
+  "questions": [
+    {
+      "type": "multiple_choice",
+      "title": "Perfect Question - No Issues",
+      "question_text": "What is the relationship between voltage, current, and resistance in Ohm's law?",
+      "choices": [
+        "$V = I \\times R$",
+        "$V = I / R$", 
+        "$V = R / I$",
+        "$V = I + R$"
+      ],
+      "correct_answer": "A",
+      "points": 1,
+      "tolerance": 0.05,
+      "feedback_correct": "Correct! Ohm's law states that voltage equals current times resistance: $V = I \\times R$",
+      "feedback_incorrect": "Review Ohm's law: Voltage = Current × Resistance",
+      "topic": "Circuit Analysis",
+      "subtopic": "Ohm's Law",
+      "difficulty": "Easy"
+    },
+    {
+      "type": "multiple_choice",
+      "title": "Unicode Test - Needs Conversion",
+      "question_text": "A 10Ω resistor carries 2A of current. What is the voltage drop?",
+      "choices": [
+        "5V",
+        "10V",
+        "20V",
+        "0.2V"
+      ],
+      "correct_answer": "C",
+      "points": 2,
+      "feedback_correct": "Correct! Using Ohm's law: V = I × R = 2A × 10Ω = 20V",
+      "feedback_incorrect": "Use Ohm's law: V = I × R. Remember: 2A × 10Ω = 20V",
+      "topic": "Circuit Analysis",
+      "subtopic": "Ohm's Law",
+      "difficulty": "Medium"
+    },
+    {
+      "type": "numerical",
+      "title": "More Unicode Issues",
+      "question_text": "Calculate the power dissipated in a 5Ω resistor with 3A current. Answer in watts.",
+      "correct_answer": "45",
+      "points": 3,
+      "tolerance": 0.1,
+      "feedback_correct": "Correct! P = I²R = (3A)² × 5Ω = 9 × 5 = 45W",
+      "feedback_incorrect": "Use the power formula: P = I²R where I = 3A and R = 5Ω",
+      "topic": "Power Calculations",
+      "subtopic": "Resistive Power",
+      "difficulty": "Medium"
+    },
+    {
+      "type": "true_false",
+      "title": "Schema Error Test - Missing Field",
+      "question_text": "In a series circuit, current is the same through all components.",
+      "choices": ["True", "False"],
+      "correct_answer": "True",
+      "points": 1,
+      "feedback_correct": "Correct! In series circuits, current is constant throughout the circuit.",
+      "feedback_incorrect": "Review Kirchhoff's current law for series circuits.",
+      "topic": "Circuit Analysis"
+    },
+    {
+      "type": "multiple_choice",
+      "title": "Heavy Unicode Test",
+      "question_text": "What is the impedance of a circuit with R = 3Ω, XL = 4Ω at 60° phase angle?",
+      "choices": [
+        "Z = 5Ω ∠ 53.13°",
+        "Z = 7Ω ∠ 60°",
+        "Z = 5Ω ∠ 36.87°", 
+        "Z = 12Ω ∠ 0°"
+      ],
+      "correct_answer": "A",
+      "points": 4,
+      "tolerance": 0.05,
+      "feedback_correct": "Correct! Z = √(R² + XL²) = √(3² + 4²) = 5Ω, θ = arctan(XL/R) = arctan(4/3) = 53.13°",
+      "feedback_incorrect": "Use Z = √(R² + XL²) and θ = arctan(XL/R) to find impedance magnitude and phase.",
+      "topic": "AC Circuit Analysis",
+      "subtopic": "Impedance Calculations",
+      "difficulty": "Hard"
+    },
+    {
+      "type": "multiple_choice",
+      "title": "Schema Error - Invalid Type",
+      "question_text": "What is the frequency of a 60Hz AC signal?",
+      "choices": ["60Hz", "120Hz", "30Hz", "180Hz"],
+      "correct_answer": "A",
+      "points": 1,
+      "topic": "AC Fundamentals",
+      "difficulty": "Easy"
+    },
+    {
+      "type": "numerical",
+      "title": "Greek Letters Unicode Test",
+      "question_text": "Calculate the angular frequency ω for f = 60Hz. Use ω = 2πf.",
+      "correct_answer": "377",
+      "points": 2,
+      "tolerance": 1,
+      "feedback_correct": "Correct! ω = 2πf = 2π × 60 = 377 rad/s",
+      "feedback_incorrect": "Use the formula ω = 2πf where f = 60Hz",
+      "topic": "AC Fundamentals",
+      "subtopic": "Angular Frequency",
+      "difficulty": "Medium"
+    },
+    {
+      "type": "fill_in_multiple_blanks",
+      "title": "Complex Unicode Example",
+      "question_text": "The power factor of an AC circuit is cos(θ), where θ is the phase angle between voltage and current. For a circuit with φ = 30°, the power factor is [blank1].",
+      "correct_answer": "blank1=0.866",
+      "points": 2,
+      "feedback_correct": "Correct! Power factor = cos(30°) = 0.866",
+      "feedback_incorrect": "Power factor = cos(φ) where φ is the phase angle",
+      "topic": "AC Power",
+      "subtopic": "Power Factor",
+      "difficulty": "Medium"
+    },
+    {
+      "type": "multiple_choice",
+      "title": "Missing Required Fields Test",
+      "question_text": "What happens in this broken question?",
+      "choices": ["Option A", "Option B"],
+      "correct_answer": "A",
+      "points": 1
+    },
+    {
+      "type": "numerical",
+      "title": "Mathematical Symbols Test",
+      "question_text": "If the voltage across a capacitor is V = 10∠45° volts, what is the magnitude?",
+      "correct_answer": "10",
+      "points": 1,
+      "tolerance": 0.01,
+      "feedback_correct": "Correct! The magnitude of V = 10∠45° is 10V",
+      "feedback_incorrect": "For phasor notation A∠θ, the magnitude is A",
+      "topic": "Phasor Analysis",
+      "subtopic": "Complex Numbers",
+      "difficulty": "Easy"
+    }
+  ],
+  "metadata": {
+    "test_file": true,
+    "created_by": "Q2Validate Test Suite",
+    "description": "Comprehensive test file with various validation scenarios",
+    "test_scenarios": [
+      "Perfect question (no issues)",
+      "Unicode characters (Ω, °, ², π, etc.)",
+      "Schema errors (missing fields, invalid types)",
+      "Different question types",
+      "Various difficulty levels",
+      "Mathematical notation"
+    ]
+  }
+}
