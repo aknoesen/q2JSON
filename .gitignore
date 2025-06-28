@@ -27,3 +27,18 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.temp
+
+# Additional Streamlit
+.streamlit/config.toml
+
+# Test files (for future development)
+test_responses/
+sample_data/
+
+# Build artifacts (if you add packaging later)
+dist/
+build/
+*.egg-info/
+
+# Development directory
+devlopment/devlopment/ 
