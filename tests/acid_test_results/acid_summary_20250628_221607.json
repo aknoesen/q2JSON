@@ -1,0 +1,45 @@
+{
+  "total_questions": 237,
+  "successful_questions": 0,
+  "failed_questions": 237,
+  "success_rate": 0.0,
+  "total_processing_time": 0.018762588500976562,
+  "average_processing_time": 7.916704008850871e-05,
+  "median_processing_time": 6.914138793945312e-05,
+  "max_processing_time": 0.0003228187561035156,
+  "min_processing_time": 5.1975250244140625e-05,
+  "llm_type_breakdown": {
+    "unknown": {
+      "total": 236,
+      "successful": 0,
+      "failed": 236,
+      "success_rate": 0.0
+    },
+    "llama": {
+      "total": 1,
+      "successful": 0,
+      "failed": 1,
+      "success_rate": 0.0
+    }
+  },
+  "error_type_breakdown": {
+    "invalid_result": 237
+  },
+  "size_analysis": {
+    "avg_original_size": 764.7594936708861,
+    "avg_processed_size": 0,
+    "median_original_size": 747,
+    "median_processed_size": 0,
+    "max_original_size": 1070,
+    "min_original_size": 584,
+    "compression_ratio": 0
+  },
+  "performance_metrics": {
+    "questions_per_second": 12631.519365660262,
+    "avg_processing_speed_ms": 0.07916704008850871,
+    "median_processing_speed_ms": 0.06914138793945312,
+    "throughput_score": 0.0,
+    "consistency_score": 99.97022963721172
+  },
+  "production_readiness_score": 38.0
+}

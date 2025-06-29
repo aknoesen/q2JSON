@@ -1,0 +1,564 @@
+{
+  "questions": [
+    {
+      "type": "multiple_choice",
+      "title": "Phase Relationship in a Pure Inductor",
+      "question_text": "In a purely inductive AC circuit, what is the phase relationship between the voltage across the inductor ($V_L$) and the current through it ($I_L$)?",
+      "choices": [
+        "Voltage is in phase with current.",
+        "Current leads voltage by $90\\,^\\circ$.",
+        "Voltage lags current by $90\\,^\\circ$.",
+        "Voltage leads current by $90\\,^\\circ$."
+      ],
+      "correct_answer": "Voltage leads current by $90\\,^\\circ$.",
+      "points": 2,
+      "tolerance": 0.05,
+      "feedback_correct": "Correct! For an inductor, the voltage across it leads the current through it by a phase angle of $90\\,^\\circ$. (ELI: Voltage leads Current in an Inductor).",
+      "feedback_incorrect": "Remember the mnemonic 'ELI' for inductors, indicating that Voltage (E) leads Current (I).",
+      "image_file": [],
+      "topic": "Dynamic Component Behavior",
+      "subtopic": "Inductor Fundamentals",
+      "difficulty": "Easy",
+      "id": "_1"
+    },
+    {
+      "type": "multiple_choice",
+      "title": "Impedance of a Purely Resistive Circuit",
+      "question_text": "What is the impedance of a purely resistive circuit with a resistance of $100\\,\\Omega$?",
+      "choices": [
+        "$Z = j100\\,\\Omega$",
+        "$Z = 100\\,\\Omega$",
+        "$Z = -j100\\,\\Omega$",
+        "$Z = 100 + j100\\,\\Omega$"
+      ],
+      "correct_answer": "$Z = 100\\,\\Omega$",
+      "points": 1,
+      "tolerance": 0.05,
+      "feedback_correct": "Correct! For a purely resistive circuit, the impedance is simply the resistance value, with no imaginary (reactive) component.",
+      "feedback_incorrect": "Impedance in a purely resistive circuit is purely real; there is no reactive component.",
+      "image_file": [],
+      "topic": "AC Circuit Analysis",
+      "subtopic": "Impedance",
+      "difficulty": "Easy",
+      "id": "_3"
+    },
+    {
+      "type": "multiple_choice",
+      "title": "Phase Angle of Complex Impedance",
+      "question_text": "The phase angle of a complex impedance $Z = R + jX$ is given by:",
+      "choices": [
+        "$\\tan^{-1}(R/X)$",
+        "$\\sin^{-1}(X/R)$",
+        "$\\cos^{-1}(R/|Z|)$",
+        "$\\tan^{-1}(X/R)$"
+      ],
+      "correct_answer": "$\\tan^{-1}(X/R)$",
+      "points": 3,
+      "tolerance": 0.05,
+      "feedback_correct": "Correct! The phase angle $\\phi$ of impedance is the angle whose tangent is the ratio of the imaginary part (reactance $X$) to the real part (resistance $R$).",
+      "feedback_incorrect": "Remember that the phase angle is found from the components of the complex impedance. It's the angle of the impedance vector in the complex plane.",
+      "image_file": [],
+      "topic": "AC Circuit Analysis",
+      "subtopic": "Impedance",
+      "difficulty": "Medium",
+      "id": "_5"
+    },
+    {
+      "type": "multiple_choice",
+      "title": "Impact of Frequency on Inductor in High-Pass Filter",
+      "question_text": "In a series RL circuit used as a high-pass filter (output across L), what happens to the inductor's role as frequency increases?",
+      "choices": [
+        "It acts more like a short circuit, reducing output.",
+        "It acts more like an open circuit, increasing output.",
+        "Its impedance decreases, increasing output.",
+        "Its impedance becomes negligible, constant output."
+      ],
+      "correct_answer": "It acts more like an open circuit, increasing output.",
+      "points": 3,
+      "tolerance": 0.05,
+      "feedback_correct": "Correct! As frequency increases, $X_L = 2\\pi f L$ increases. In a high-pass RL filter (output across L), a higher $X_L$ means more voltage drops across the inductor, thus increasing the output voltage.",
+      "feedback_incorrect": "At high frequencies, an inductor's impedance increases significantly, allowing it to drop more voltage when acting as the output component in a high-pass filter.",
+      "image_file": [],
+      "topic": "AC Circuit Analysis",
+      "subtopic": "Frequency Response",
+      "difficulty": "Medium",
+      "id": "_7"
+    },
+    {
+      "type": "multiple_choice",
+      "title": "Bandwidth of a Resonant Circuit",
+      "question_text": "The bandwidth (BW) of a resonant circuit is defined as the frequency range between the:",
+      "choices": [
+        "Zero-power points.",
+        "-3dB power points (half-power points).",
+        "Peak voltage points.",
+        "Resonant frequency and the cutoff frequency."
+      ],
+      "correct_answer": "-3dB power points (half-power points).",
+      "points": 3,
+      "tolerance": 0.05,
+      "feedback_correct": "Correct! Bandwidth is typically defined as the difference between the upper and lower half-power frequencies ($f_2 - f_1$), where the output power is half its maximum value (or voltage/current is $1/\\sqrt{2}$ of max).",
+      "feedback_incorrect": "Bandwidth refers to the range of frequencies over which the circuit's response is considered effective, specifically at the half-power points.",
+      "image_file": [],
+      "topic": "AC Circuit Analysis",
+      "subtopic": "Resonance",
+      "difficulty": "Medium",
+      "id": "_9"
+    },
+    {
+      "type": "numerical",
+      "title": "Total Impedance of Series RL",
+      "question_text": "A $200\\,\\Omega$ resistor is in series with an inductor with a reactance of $150\\,\\Omega$. What is the total impedance in polar form?",
+      "choices": [],
+      "correct_answer": "250 \\angle 36.87^\\circ",
+      "points": 4,
+      "tolerance": 0.05,
+      "feedback_correct": "Correct! $Z = 200 + j150\\,\\Omega$. Magnitude $|Z| = \\sqrt{200^2 + 150^2} = \\sqrt{40000 + 22500} = \\sqrt{62500} = 250\\,\\Omega$. Angle $\\phi = \\tan^{-1}(150/200) = \\tan^{-1}(0.75) \\approx 36.87\\,^\\circ$. So $Z = 250\\,\\Omega \\angle 36.87\\,^\\circ$.",
+      "feedback_incorrect": "First, express impedance in rectangular form ($R + jX_L$). Then convert to polar form: magnitude $|Z| = \\sqrt{R^2 + X_L^2}$ and angle $\\phi = \\tan^{-1}(X_L/R)$.",
+      "image_file": [],
+      "topic": "AC Circuit Analysis",
+      "subtopic": "AC Impedance",
+      "difficulty": "Hard",
+      "id": "_11"
+    },
+    {
+      "type": "numerical",
+      "title": "Voltage across Resistor in Series RC",
+      "question_text": "A series RC circuit has $R = 100\\,\\Omega$ and $X_C = 50\\,\\Omega$. If the total current is $0.5\\,\\text{A}$ RMS, what is the RMS voltage across the resistor?",
+      "choices": [],
+      "correct_answer": "50",
+      "points": 2,
+      "tolerance": 0.05,
+      "feedback_correct": "Correct! For a series circuit, the current is the same through all components. So, $V_R = I \\times R = 0.5\\,\\text{A} \\times 100\\,\\Omega = 50\\,\\text{V}$.",
+      "feedback_incorrect": "Apply Ohm's Law to the resistor. Remember that current is uniform in a series circuit.",
+      "image_file": [],
+      "topic": "DC Circuits",
+      "subtopic": "Series Circuits",
+      "difficulty": "Easy",
+      "id": "_13"
+    },
+    {
+      "type": "numerical",
+      "title": "Total Impedance of Parallel RC",
+      "question_text": "A $100\\,\\Omega$ resistor is in parallel with a capacitor whose reactance is $-j150\\,\\Omega$. What is the total impedance in polar form?",
+      "choices": [],
+      "correct_answer": "83.2 \\angle -33.69^\\circ",
+      "points": 5,
+      "tolerance": 0.05,
+      "feedback_correct": "Correct! First, convert to admittance: $Y_R = 1/100 = 0.01\\,\\text{S}$. $Y_C = 1/(-j150) = j/150 \\approx j0.00667\\,\\text{S}$. Total admittance $Y_{total} = 0.01 + j0.00667\\,\\text{S}$. Magnitude $|Y_{total}| = \\sqrt{0.01^2 + 0.00667^2} \\approx 0.01201\\,\\text{S}$. Angle $\\phi_Y = \\tan^{-1}(0.00667/0.01) \\approx 33.69\\,^\\circ$. Total impedance $Z_{total} = 1/Y_{total} = 1/(0.01201 \\angle 33.69\\,^\\circ) \\approx 83.2 \\angle -33.69\\,^\\circ\\,\\Omega$.",
+      "feedback_incorrect": "For parallel components, it's often easier to convert to admittance, add them, and then convert the total admittance back to impedance. Remember that the angle flips when taking the reciprocal of a complex number.",
+      "image_file": [],
+      "topic": "AC Circuit Analysis",
+      "subtopic": "AC Impedance",
+      "difficulty": "Hard",
+      "id": "_15"
+    },
+    {
+      "type": "numerical",
+      "title": "Total Reactive Power Calculation",
+      "question_text": "A circuit draws $500\\,\\text{W}$ of true power and has an apparent power of $800\\,\\text{VA}$. What is the magnitude of the reactive power (Q)?",
+      "choices": [],
+      "correct_answer": "624.5",
+      "points": 3,
+      "tolerance": 0.05,
+      "feedback_correct": "Correct! Using the power triangle relation $S^2 = P^2 + Q^2$, we have $Q = \\sqrt{S^2 - P^2} = \\sqrt{800^2 - 500^2} = \\sqrt{640000 - 250000} = \\sqrt{390000} \\approx 624.5\\,\\text{VAR}$.",
+      "feedback_incorrect": "Remember the Pythagorean relationship between apparent power (hypotenuse), true power (adjacent side), and reactive power (opposite side) in the power triangle.",
+      "image_file": [],
+      "topic": "AC Circuit Analysis",
+      "subtopic": "AC Power Analysis",
+      "difficulty": "Medium",
+      "id": "_17"
+    },
+    {
+      "type": "numerical",
+      "title": "Angular Frequency to Frequency Conversion",
+      "question_text": "An AC signal has an angular frequency ($\\omega$) of $5000\\,\\text{rad/s}$. What is its frequency ($f$) in kHz?",
+      "choices": [],
+      "correct_answer": "0.796",
+      "points": 2,
+      "tolerance": 0.05,
+      "feedback_correct": "Correct! $f = \\omega / (2\\pi) = 5000\\,\\text{rad/s} / (2\\pi) \\approx 795.77\\,\\text{Hz} \\approx 0.796\\,\\text{kHz}$.",
+      "feedback_incorrect": "Remember the relationship $\\omega = 2\\pi f$. Rearrange to solve for $f$.",
+      "image_file": [],
+      "topic": "Fundamental Electrical Concepts",
+      "subtopic": "Basic Definitions",
+      "difficulty": "Easy",
+      "id": "_19"
+    },
+    {
+      "type": "true_false",
+      "title": "Real Power Unit",
+      "question_text": "True power in an AC circuit is measured in Volt-Amperes Reactive (VAR).",
+      "choices": [
+        "True",
+        "False"
+      ],
+      "correct_answer": "False",
+      "points": 1,
+      "tolerance": 0.05,
+      "feedback_correct": "Correct! True power (real power) is measured in Watts (W). VAR is the unit for reactive power.",
+      "feedback_incorrect": "Distinguish between the units for real, reactive, and apparent power.",
+      "image_file": [],
+      "topic": "AC Circuit Analysis",
+      "subtopic": "AC Power Analysis",
+      "difficulty": "Easy",
+      "id": "_21"
+    },
+    {
+      "type": "true_false",
+      "title": "Inductor as Short Circuit at High Frequencies",
+      "question_text": "At very high frequencies, an ideal inductor behaves like a short circuit.",
+      "choices": [
+        "True",
+        "False"
+      ],
+      "correct_answer": "False",
+      "points": 1,
+      "tolerance": 0.05,
+      "feedback_correct": "Correct! At very high frequencies, the inductive reactance ($X_L = 2\\pi f L$) becomes very large, causing the inductor to behave like an open circuit.",
+      "feedback_incorrect": "Think about how inductive reactance changes with frequency. The opposite is true for capacitors.",
+      "image_file": [],
+      "topic": "Dynamic Component Behavior",
+      "subtopic": "Inductor Fundamentals",
+      "difficulty": "Easy",
+      "id": "_22"
+    },
+    {
+      "type": "true_false",
+      "title": "Series RLC Impedance at Resonance",
+      "question_text": "At resonance in a series RLC circuit, the total impedance is purely imaginary.",
+      "choices": [
+        "True",
+        "False"
+      ],
+      "correct_answer": "False",
+      "points": 2,
+      "tolerance": 0.05,
+      "feedback_correct": "Correct! At series resonance, $X_L = X_C$, so the imaginary parts cancel out, leaving the impedance purely resistive ($Z=R$).",
+      "feedback_incorrect": "The definition of series resonance is when the inductive and capacitive reactances cancel, leaving only the real part (resistance).",
+      "image_file": [],
+      "topic": "AC Circuit Analysis",
+      "subtopic": "Resonance",
+      "difficulty": "Medium",
+      "id": "_23"
+    },
+    {
+      "type": "true_false",
+      "title": "Parallel Impedances Add Directly",
+      "question_text": "To find the total impedance of components connected in parallel, you can simply add their individual impedances directly.",
+      "choices": [
+        "True",
+        "False"
+      ],
+      "correct_answer": "False",
+      "points": 2,
+      "tolerance": 0.05,
+      "feedback_correct": "Correct! For parallel impedances, you add their reciprocals (admittances), or use the product-over-sum rule for two components, similar to parallel resistors.",
+      "feedback_incorrect": "Direct addition applies to series impedances. For parallel impedances, a different rule involving reciprocals or the product-over-sum method is used.",
+      "image_file": [],
+      "topic": "AC Circuit Analysis",
+      "subtopic": "AC Impedance",
+      "difficulty": "Medium",
+      "id": "_24"
+    },
+    {
+      "type": "true_false",
+      "title": "Complex Conjugate for Complex Power",
+      "question_text": "Complex power ($S$) is calculated as the product of the voltage phasor and the complex conjugate of the current phasor ($S = V I^*$).",
+      "choices": [
+        "True",
+        "False"
+      ],
+      "correct_answer": "True",
+      "points": 3,
+      "tolerance": 0.05,
+      "feedback_correct": "Correct! This formula correctly yields complex power ($S = P + jQ$), where the real part ($P$) is true power and the imaginary part ($Q$) is reactive power. Using the conjugate ensures the correct sign for $Q$.",
+      "feedback_incorrect": "This formula is the standard definition for complex power. It ensures that the signs of P and Q are correct based on the phase angle between V and I.",
+      "image_file": [],
+      "topic": "AC Circuit Analysis",
+      "subtopic": "AC Power Analysis",
+      "difficulty": "Hard",
+      "id": "_26"
+    },
+    {
+      "type": "true_false",
+      "title": "RMS Voltage of a Square Wave",
+      "question_text": "For a square wave, the RMS voltage is equal to its peak voltage.",
+      "choices": [
+        "True",
+        "False"
+      ],
+      "correct_answer": "True",
+      "points": 2,
+      "tolerance": 0.05,
+      "feedback_correct": "Correct! For a symmetrical square wave, the voltage is either at $+V_{peak}$ or $-V_{peak}$ for equal durations. Squaring these values makes them positive, and the average of the squared values is simply $V_{peak}^2$. Taking the square root gives $V_{peak}$.",
+      "feedback_incorrect": "The RMS value for different waveforms varies. Only for a square wave is RMS equal to peak.",
+      "image_file": [],
+      "topic": "Fundamental Electrical Concepts",
+      "subtopic": "Basic Definitions",
+      "difficulty": "Medium",
+      "id": "_27"
+    },
+    {
+      "type": "true_false",
+      "title": "Series RLC Voltage Magnitudes at Resonance",
+      "question_text": "In a series RLC circuit at resonance, the magnitude of the voltage across the inductor ($|V_L|$) is always equal to the magnitude of the voltage across the capacitor ($|V_C|$).",
+      "choices": [
+        "True",
+        "False"
+      ],
+      "correct_answer": "True",
+      "points": 2,
+      "tolerance": 0.05,
+      "feedback_correct": "Correct! At series resonance, $X_L = X_C$, and since the same current flows through both, $V_L = I X_L$ and $V_C = I X_C$, meaning their magnitudes are equal.",
+      "feedback_incorrect": "This is a defining characteristic of series resonance. While their phases are opposite, their magnitudes are equal.",
+      "image_file": [],
+      "topic": "AC Circuit Analysis",
+      "subtopic": "Resonance",
+      "difficulty": "Easy",
+      "id": "_28"
+    },
+    {
+      "type": "true_false",
+      "title": "Cutoff Frequency and Gain",
+      "question_text": "At the cutoff frequency ($f_c$) of a filter, the output voltage is always $0.707$ times the maximum output voltage.",
+      "choices": [
+        "True",
+        "False"
+      ],
+      "correct_answer": "True",
+      "points": 2,
+      "tolerance": 0.05,
+      "feedback_correct": "Correct! The cutoff frequency (or -3dB frequency) is where the power is halved. Since $P \\propto V^2$, if power is halved, voltage is reduced by a factor of $1/\\sqrt{2} \\approx 0.707$.",
+      "feedback_incorrect": "This is a fundamental definition of the cutoff frequency for filters, often referred to as the half-power point.",
+      "image_file": [],
+      "topic": "AC Circuit Analysis",
+      "subtopic": "Frequency Response",
+      "difficulty": "Medium",
+      "id": "_29"
+    },
+    {
+      "type": "true_false",
+      "title": "Reactance Sign Convention",
+      "question_text": "Inductive reactance ($X_L$) is conventionally represented with a negative sign in complex impedance calculations ($Z_L = -jX_L$).",
+      "choices": [
+        "True",
+        "False"
+      ],
+      "correct_answer": "False",
+      "points": 2,
+      "tolerance": 0.05,
+      "feedback_correct": "Correct! Inductive reactance is positive ($Z_L = jX_L$), causing current to lag voltage. Capacitive reactance is negative ($Z_C = -jX_C$).",
+      "feedback_incorrect": "Remember the sign convention for inductive and capacitive reactances. Inductors introduce a positive imaginary component.",
+      "image_file": [],
+      "topic": "AC Circuit Analysis",
+      "subtopic": "Reactive Components",
+      "difficulty": "Easy",
+      "id": "_30"
+    },
+    {
+      "type": "true_false",
+      "title": "Ohm's Law with Phasors",
+      "question_text": "Ohm's Law ($V = I Z$) can be directly applied using phasor quantities for voltage, current, and impedance.",
+      "choices": [
+        "True",
+        "False"
+      ],
+      "correct_answer": "True",
+      "points": 1,
+      "tolerance": 0.05,
+      "feedback_correct": "Correct! This is one of the fundamental benefits of phasor analysis, extending Ohm's Law to AC circuits by treating V, I, and Z as complex numbers (phasors).",
+      "feedback_incorrect": "Phasor analysis allows Ohm's Law to be used in AC circuits, replacing scalar resistance with complex impedance.",
+      "image_file": [],
+      "topic": "AC Circuit Analysis",
+      "subtopic": "Phasors",
+      "difficulty": "Easy",
+      "id": "_32"
+    },
+    {
+      "type": "multiple_choice",
+      "title": "Phase Relationship in a Pure Resistor",
+      "question_text": "In a purely resistive AC circuit, what is the phase relationship between voltage and current?",
+      "choices": [
+        "Voltage leads current by $90\\,^\\circ$.",
+        "Current leads voltage by $90\\,^\\circ$.",
+        "Voltage and current are in phase.",
+        "Voltage is $180\\,^\\circ$ out of phase with current."
+      ],
+      "correct_answer": "Voltage and current are in phase.",
+      "points": 2,
+      "tolerance": 0.05,
+      "feedback_correct": "Correct! Resistors do not introduce any phase shift between voltage and current; they are always in phase.",
+      "feedback_incorrect": "Only reactive components (capacitors and inductors) cause phase shifts.",
+      "image_file": [],
+      "topic": "AC Circuit Analysis",
+      "subtopic": "Reactive Components",
+      "difficulty": "Easy",
+      "id": "_38"
+    },
+    {
+      "type": "multiple_choice",
+      "title": "Effect of Resonance in Series RLC",
+      "question_text": "At resonance in a series RLC circuit, what is the effect on current flow?",
+      "choices": [
+        "It is maximized.",
+        "It is minimized.",
+        "It becomes zero.",
+        "It becomes purely reactive."
+      ],
+      "correct_answer": "It is maximized.",
+      "points": 3,
+      "tolerance": 0.05,
+      "feedback_correct": "Correct! At resonance, the impedance of a series RLC circuit is at its minimum ($Z=R$), leading to maximum current flow for a given voltage.",
+      "feedback_incorrect": "In a series resonant circuit, the impedance is at its lowest, allowing the largest current to flow.",
+      "image_file": [],
+      "topic": "AC Circuit Analysis",
+      "subtopic": "Resonance",
+      "difficulty": "Medium",
+      "id": "_43"
+    },
+    {
+      "type": "multiple_choice",
+      "title": "Phase of Voltage and Current in Parallel Resonant Circuit",
+      "question_text": "At resonance in a parallel RLC circuit, what is the phase relationship between the total source voltage and total source current?",
+      "choices": [
+        "Voltage leads current by $90\\,^\\circ$.",
+        "Current leads voltage by $90\\,^\\circ$.",
+        "Voltage and current are in phase.",
+        "Voltage is $180\\,^\\circ$ out of phase with current."
+      ],
+      "correct_answer": "Voltage and current are in phase.",
+      "points": 3,
+      "tolerance": 0.05,
+      "feedback_correct": "Correct! At resonance, the reactive currents in the inductor and capacitor cancel each other out, making the total current from the source purely resistive. Therefore, the source voltage and current are in phase.",
+      "feedback_incorrect": "At resonance, a parallel RLC circuit behaves purely resistively with respect to the source.",
+      "image_file": [],
+      "topic": "AC Circuit Analysis",
+      "subtopic": "Resonance",
+      "difficulty": "Medium",
+      "id": "_46"
+    },
+    {
+      "type": "numerical",
+      "title": "Capacitive Reactance Calculation",
+      "question_text": "Calculate the capacitive reactance ($X_C$) of a $10\\,\\mu\\text{F}$ capacitor at a frequency of $1\\,\\text{kHz}$.",
+      "choices": [],
+      "correct_answer": "-15.92",
+      "points": 3,
+      "tolerance": 0.05,
+      "feedback_correct": "Correct! $X_C = -1 / (2\\pi f C) = -1 / (2\\pi (1000\\,\\text{Hz}) (10 \\times 10^{-6}\\,\\text{F})) \\approx -15.92\\,\\Omega$.",
+      "feedback_incorrect": "Use the formula $X_C = -1 / (2\\pi f C)$. Remember to convert \\mu F to F and include the negative sign.",
+      "image_file": [],
+      "topic": "Dynamic Component Behavior",
+      "subtopic": "Capacitor Fundamentals",
+      "difficulty": "Medium",
+      "id": "_50"
+    },
+    {
+      "type": "numerical",
+      "title": "Angular Frequency Conversion",
+      "question_text": "Convert a frequency of $60\\,\\text{Hz}$ to angular frequency ($\\omega$).",
+      "choices": [],
+      "correct_answer": "376.99",
+      "points": 2,
+      "tolerance": 0.05,
+      "feedback_correct": "Correct! $\\omega = 2\\pi f = 2\\pi (60\\,\\text{Hz}) \\approx 376.99\\,\\text{rad/s}$.",
+      "feedback_incorrect": "Angular frequency $\\omega$ is related to frequency $f$ by the formula $\\omega = 2\\pi f$.",
+      "image_file": [],
+      "topic": "Fundamental Electrical Concepts",
+      "subtopic": "Basic Definitions",
+      "difficulty": "Easy",
+      "id": "_55"
+    },
+    {
+      "type": "true_false",
+      "title": "Current Lags Voltage in Inductor",
+      "question_text": "In a purely inductive AC circuit, the current lags the voltage by $90\\,^\\circ$.",
+      "choices": [
+        "True",
+        "False"
+      ],
+      "correct_answer": "True",
+      "points": 1,
+      "tolerance": 0.05,
+      "feedback_correct": "Correct! For an inductor, the voltage leads the current by $90\\,^\\circ$, which means the current lags the voltage by $90\\,^\\circ$. (ELI: Voltage leads Current in an Inductor).",
+      "feedback_incorrect": "Remember the mnemonic 'ELI' for inductors (Voltage leads Current).",
+      "image_file": [],
+      "topic": "Dynamic Component Behavior",
+      "subtopic": "Inductor Fundamentals",
+      "difficulty": "Easy",
+      "id": "_58"
+    },
+    {
+      "type": "true_false",
+      "title": "Complex Power Real Part",
+      "question_text": "The real part of complex power represents the reactive power in an AC circuit.",
+      "choices": [
+        "True",
+        "False"
+      ],
+      "correct_answer": "False",
+      "points": 2,
+      "tolerance": 0.05,
+      "feedback_correct": "Correct! The real part of complex power is the true (average) power ($P$), while the imaginary part is the reactive power ($Q$).",
+      "feedback_incorrect": "Complex power $S = P + jQ$, where $P$ is the real power and $Q$ is the reactive power.",
+      "image_file": [],
+      "topic": "AC Circuit Analysis",
+      "subtopic": "AC Power Analysis",
+      "difficulty": "Medium",
+      "id": "_62"
+    },
+    {
+      "type": "true_false",
+      "title": "Phase Angle of Pure Inductive Impedance",
+      "question_text": "The phase angle of a purely inductive impedance is $0\\,^\\circ$.",
+      "choices": [
+        "True",
+        "False"
+      ],
+      "correct_answer": "False",
+      "points": 2,
+      "tolerance": 0.05,
+      "feedback_correct": "Correct! The phase angle of a purely inductive impedance ($Z_L = jX_L$) is $+90\\,^\\circ$.",
+      "feedback_incorrect": "Inductive reactance causes a $90\\,^\\circ$ phase shift.",
+      "image_file": [],
+      "topic": "AC Circuit Analysis",
+      "subtopic": "Reactive Components",
+      "difficulty": "Easy",
+      "id": "_63"
+    }
+  ],
+  "metadata": {
+    "exported_date": "2025-06-23T05:56:56.011254",
+    "export_source": "Q2LMS Export System",
+    "format_version": "Phase Four",
+    "total_questions": 28,
+    "total_points": 64,
+    "question_types": [
+      "multiple_choice",
+      "true_false",
+      "numerical"
+    ],
+    "topics": [
+      "AC Circuit Analysis",
+      "Dynamic Component Behavior",
+      "DC Circuits",
+      "Fundamental Electrical Concepts"
+    ],
+    "difficulties": [
+      "Easy",
+      "Hard",
+      "Medium"
+    ],
+    "latex_questions": 26,
+    "statistics": {
+      "avg_points_per_question": 2.29,
+      "latex_percentage": 92.85714285714286,
+      "type_distribution": {
+        "multiple_choice": 8,
+        "true_false": 13,
+        "numerical": 7
+      }
+    }
+  }
+}

@@ -1,0 +1,85 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.5, pytest-8.4.1, pluggy-1.6.0
+rootdir: C:\Users\aknoesen\Documents\Knoesen\Project-Root-Q2QTI\q2JSON
+plugins: cov-6.2.1, html-4.1.1, metadata-3.1.1
+collected 10 items
+
+test_real_data.py ..                                                     [ 20%]
+tests\test_json_processor.py .F..F...                                    [100%]
+
+================================== FAILURES ===================================
+_____________ TestJSONProcessor.test_chatgpt_display_math_repair ______________
+
+self = <test_json_processor.TestJSONProcessor object at 0x000002EAB08D5310>
+
+    def test_chatgpt_display_math_repair(self):
+        """Test ChatGPT display math repair"""
+        chatgpt_response = '''
+        {
+            "questions": [
+                {
+                    "type": "numerical",
+                    "title": "Frequency Calculation",
+                    "question_text": "Calculate the frequency",
+                    "choices": [],
+                    "correct_answer": "2.236",
+                    "points": 2,
+                    "tolerance": 0.05,
+                    "feedback_correct": "Correct! The resonant frequency is calculated as follows: $$f_r = \\\\frac{3 \\\\times 10^8}{2 \\\\times 0.03 \\\\times \\\\sqrt{4.5}} \\\\approx 2.236 \\\\times 10^9\\\\,\\\\text{Hz} = 2.236\\\\,\\\\text{GHz}$$.",
+                    "feedback_incorrect": "Check your calculation",
+                    "image_file": [],
+                    "topic": "Antennas",
+                    "subtopic": "Frequency",
+                    "difficulty": "Medium"
+                }
+            ]
+        }
+        '''
+    
+        success, data, messages = self.processor.process_raw_json(chatgpt_response, "chatgpt")
+    
+        assert success == True, f"Processing failed: {messages}"
+        assert data is not None
+        assert len(data['questions']) == 1
+>       assert "automatically repaired" in " ".join(messages)
+E       AssertionError: assert 'automatically repaired' in '\u2705 Direct JSON parsing successful'
+E        +  where '\u2705 Direct JSON parsing successful' = <built-in method join of str object at 0x00007FFB90B833B0>(['\u2705 Direct JSON parsing successful'])
+E        +    where <built-in method join of str object at 0x00007FFB90B833B0> = ' '.join
+
+tests\test_json_processor.py:86: AssertionError
+_________________ TestJSONProcessor.test_question_validation __________________
+
+self = <test_json_processor.TestJSONProcessor object at 0x000002EAB08FFE30>
+
+    def test_question_validation(self):
+        """Test question validation functionality"""
+        test_data = {
+            "questions": [
+                {
+                    "type": "multiple_choice",
+                    "title": "Good Question",
+                    "question_text": "What is this?",
+                    "choices": ["A", "B", "C", "D"],
+                    "correct_answer": "A"
+                },
+                {
+                    "type": "multiple_choice",
+                    "title": "Bad Question",
+                    # Missing question_text
+                    "choices": ["A", "B"]  # Wrong number of choices
+                }
+            ]
+        }
+    
+        results = self.processor.validate_questions(test_data)
+    
+        assert results['total'] == 2
+        assert results['valid'] == 1
+>       assert results['errors'] == 1
+E       assert 0 == 1
+
+tests\test_json_processor.py:147: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_json_processor.py::TestJSONProcessor::test_chatgpt_display_math_repair
+FAILED tests/test_json_processor.py::TestJSONProcessor::test_question_validation
+========================= 2 failed, 8 passed in 0.12s =========================

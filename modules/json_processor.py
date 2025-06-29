@@ -21,22 +21,25 @@ class JSONProcessor:
         self.validation_results = {}
         self.processing_log = []
     
+
+
+
+    
     def process_raw_json(self, raw_json: str, llm_type: str = "auto") -> Tuple[bool, Optional[Dict], List[str]]:
-        """
-        Main processing function - equivalent to Stage 3 logic
-        
-        Args:
-            raw_json: Raw JSON string from LLM response
-            llm_type: LLM type for specific repair strategy ("chatgpt", "claude", etc.)
-            
-        Returns:
-            Tuple of (success: bool, questions_data: dict or None, messages: list)
-        """
+        """Main processing function"""
         messages = []
+        # Apply simple preprocessing to extract JSON from markdown blocks and fix
+        preprocessed_json = self._simple_preprocess(raw_json)
         
-        # Step 1: Try direct parsing first
+        # Add message if preprocessing made changes to the input
+        if preprocessed_json != raw_json:
+            messages.append("✅ Preprocessing applied - cleaned LLM response")  # This line needs proper indent
+        
         try:
-            questions_data = json.loads(raw_json)
+            # Parse the preprocessed JSON instead of raw JSON
+            questions_data = json.loads(preprocessed_json)
+            # Parse the preprocessed JSON instead of raw JSON
+            # Add message if preprocessing made changes to the input
             
             if self._validate_questions_structure(questions_data):
                 messages.append("✅ Direct JSON parsing successful")
@@ -50,9 +53,10 @@ class JSONProcessor:
         
         # Step 2: Attempt automatic repair
         messages.append("🔧 Attempting automatic repair...")
-        
+
+        # Use preprocessed JSON for repair instead of raw JSON
         try:
-            repaired_json = self.auto_repair_json(raw_json, llm_type)
+            repaired_json = self.auto_repair_json(preprocessed_json, llm_type)
             questions_data = json.loads(repaired_json)
             
             if self._validate_questions_structure(questions_data):
@@ -228,3 +232,53 @@ class JSONProcessor:
             'validation_results': self.validation_results,
             'processing_log': self.processing_log
         }
+    
+    def _simple_preprocess(self, raw_text: str) -> str:
+        """
+        Simple preprocessing to fix most common issues
+        """
+        text = raw_text.strip()
+        
+        # 1. Extract from markdown blocks (simple approach)
+        if '```json' in text:
+            start = text.find('```json') + 7
+            end = text.find('```', start)
+            if end > start:
+                text = text[start:end].strip()
+        
+        # 2. Find JSON block (simple approach)
+        first_brace = text.find('{')
+        last_brace = text.rfind('}')
+        
+        if first_brace >= 0 and last_brace > first_brace:
+            text = text[first_brace:last_brace + 1]
+        
+        # 3. Basic fixes
+        text = text.replace('"', '"').replace('"', '"')  # Smart quotes
+        text = text.replace('\\_', '_')  # Remove unnecessary escape from underscores
+    
+        # 4. Remove comments (# lines) that break JSON
+        lines = text.split('\n')
+        cleaned_lines = []
+        for line in lines:
+            # Remove lines that start with # (comments)
+            if not line.strip().startswith('#'):
+                cleaned_lines.append(line)
+        text = '\n'.join(cleaned_lines)
+
+        # 5. Balance brackets FIRST (for arrays)
+        open_brackets = text.count('[')
+        close_brackets = text.count(']')
+        if open_brackets > close_brackets:
+            text += ']' * (open_brackets - close_brackets)
+
+        # 6. Balance braces SECOND (for objects)
+        open_braces = text.count('{')
+        close_braces = text.count('}')
+        if open_braces > close_braces:
+            text += '}' * (open_braces - close_braces)
+       # TEMPORARY DEBUG - remove after testing
+        print(f"DEBUG: Preprocessed text: {repr(text[:300])}")     
+
+
+        return text
