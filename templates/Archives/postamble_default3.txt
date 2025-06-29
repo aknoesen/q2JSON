@@ -204,30 +204,6 @@ Multiple Choice Questions:
   "difficulty": "Easy|Medium|Hard"
 }
 
-Multiple Dropdowns Questions:
-{
-  "type": "multiple_dropdowns",
-  "title": "Descriptive title",
-  "question_text": "The impedance of a [component1] is [value1] at frequency [freq1]",
-  "choices": {
-    "component1": ["resistor", "capacitor", "inductor", "transformer"],
-    "value1": ["$10\,\Omega$", "$20\,\Omega$", "$50\,\Omega$", "$100\,\Omega$"],
-    "freq1": ["$60\,\text{Hz}$", "$1\,\text{kHz}$", "$10\,\text{kHz}$", "$1\,\text{MHz}$"]
-  },
-  "correct_answer": {
-    "component1": "resistor",
-    "value1": "$50\,\Omega$",
-    "freq1": "$1\,\text{kHz}$"
-  },
-  "points": 1-5,
-  "tolerance": 0.05,
-  "feedback_correct": "Correct! Resistor impedance is frequency-independent.",
-  "feedback_incorrect": "Remember that resistor impedance does not change with frequency.",
-  "image_file": [],
-  "topic": "AC Analysis",
-  "subtopic": "Impedance",
-  "difficulty": "Medium"
-}
 
 Numerical Answer Questions:
 {

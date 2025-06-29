@@ -1,0 +1,92 @@
+{
+  "questions": [
+    {
+      "type": "multiple_choice",
+      "title": "Patch Antenna Polarization",
+      "question_text": "A rectangular patch antenna is designed to radiate primarily in the broadside direction. If the patch is oriented such that its length is along the x-axis and its width along the y-axis on a PCB, what is the typical polarization of the radiated field?",
+      "choices": [
+        "Circular Polarization",
+        "Vertical Polarization (along the z-axis)",
+        "Horizontal Polarization (along the x-axis)",
+        "Linear Polarization (along the y-axis)"
+      ],
+      "correct_answer": "Linear Polarization (along the y-axis)",
+      "points": 1,
+      "tolerance": 0.05,
+      "feedback_correct": "Correct. The polarization of a rectangular patch antenna is typically linear and aligned with the direction of the current flow. In this case, with the patch width along the y-axis, the primary current flow and thus the polarization will be along the y-axis.",
+      "feedback_incorrect": "Incorrect. The polarization is determined by the current distribution on the patch. Consider which direction the current predominantly flows along the width of the patch.",
+      "image_file": [],
+      "topic": "Antennas",
+      "subtopic": "Patch Antenna Polarization",
+      "difficulty": "Medium"
+    },
+    {
+      "type": "numerical",
+      "title": "Resonant Frequency Calculation",
+      "question_text": "A rectangular patch antenna has a length ($L$) of 30 mm and a width ($W$) of 40 mm. The effective dielectric constant ($\epsilon_{eff}$) of the substrate is 4.5. Calculate the approximate resonant frequency ($f_r$) of the TM$_{10}$ mode in GHz, using the formula $$f_r = \frac{c}{2L\sqrt{\epsilon_{eff}}}$$, where $c = 3 \times 10^8\,\text{m/s}$ is the speed of light.",
+      "choices": [],
+      "correct_answer": "2.236",
+      "points": 2,
+      "tolerance": 0.05,
+      "feedback_correct": "Correct! The resonant frequency is calculated as follows: $$f_r = \frac{3 \times 10^8}{2 \times 0.03 \times \sqrt{4.5}} \approx 2.236 \times 10^9\,\text{Hz} = 2.236\,\text{GHz}$$.",
+      "feedback_incorrect": "Check your calculation. Ensure that the length ($L$) is in meters and that you have correctly taken the square root of the effective dielectric constant ($\epsilon_{eff}$). The formula is $$f_r = \frac{c}{2L\sqrt{\epsilon_{eff}}}$$.",
+      "image_file": [],
+      "topic": "Antennas",
+      "subtopic": "Resonant Frequency",
+      "difficulty": "Medium"
+    },
+    {
+      "type": "true_false",
+      "title": "Substrate Thickness and Bandwidth",
+      "question_text": "Increasing the substrate thickness of a patch antenna generally increases its bandwidth, but also increases surface wave excitation, which can degrade antenna performance.",
+      "choices": [
+        "True",
+        "False"
+      ],
+      "correct_answer": "True",
+      "points": 1,
+      "tolerance": 0.0,
+      "feedback_correct": "Correct. A thicker substrate typically provides a wider bandwidth due to increased antenna impedance, but it also encourages the excitation of surface waves, which can lead to unwanted radiation and reduced antenna efficiency.",
+      "feedback_incorrect": "Incorrect. While thicker substrates do increase bandwidth, they also have drawbacks like increased surface wave excitation.",
+      "image_file": [],
+      "topic": "Antennas",
+      "subtopic": "Substrate Effects",
+      "difficulty": "Medium"
+    },
+    {
+      "type": "multiple_choice",
+      "title": "Effect of Patch Width on Input Impedance",
+      "question_text": "How does increasing the width ($W$) of a rectangular patch antenna generally affect its input impedance?",
+      "choices": [
+        "Increases the input impedance.",
+        "Decreases the input impedance.",
+        "Has no significant effect on the input impedance.",
+        "Causes the input impedance to become purely reactive."
+      ],
+      "correct_answer": "Decreases the input impedance.",
+      "points": 1,
+      "tolerance": 0.05,
+      "feedback_correct": "Correct. Increasing the width of the patch antenna generally decreases its input impedance. The input impedance is inversely proportional to the width.",
+      "feedback_incorrect": "Incorrect. Consider the relationship between the width and the current distribution on the patch. A wider patch allows for a larger current flow, leading to a lower impedance.",
+      "image_file": [],
+      "topic": "Antennas",
+      "subtopic": "Input Impedance",
+      "difficulty": "Medium"
+    },
+    {
+      "type": "numerical",
+      "title": "Return Loss Calculation",
+      "question_text": "A patch antenna has an input impedance ($Z_{in}$) of $75 + j10\,\Omega$ and is connected to a $50\,\Omega$ transmission line. Calculate the return loss (RL) in dB, using the formula $$RL = -20 \log_{10} |\Gamma|$$, where $$\Gamma = \frac{Z_{in} - Z_0}{Z_{in} + Z_0}$$ and $Z_0 = 50\,\Omega$. Provide the answer to two decimal places.",
+      "choices": [],
+      "correct_answer": "-6.78",
+      "points": 2,
+      "tolerance": 0.1,
+      "feedback_correct": "Correct! The reflection coefficient is: $$\Gamma = \frac{75 + j10 - 50}{75 + j10 + 50} = \frac{25 + j10}{125 + j10}$$. $$|\Gamma| = \frac{\sqrt{25^2 + 10^2}}{\sqrt{125^2 + 10^2}} = \frac{\sqrt{725}}{\sqrt{15725}} \approx 0.215$$. The return loss is $$RL = -20 \log_{10} (0.215) \approx 6.78\,\text{dB}$$. Since it is a LOSS, we represent it as -6.78 dB.",
+      "feedback_incorrect": "Check your calculations of the reflection coefficient ($\Gamma$) and the magnitude ($|\Gamma|$). Remember to use the formula $$RL = -20 \log_{10} |\Gamma|$$.",
+      "image_file": [],
+      "topic": "Antennas",
+      "subtopic": "Return Loss",
+      "difficulty": "Medium"
+    }
+  ]
+}
