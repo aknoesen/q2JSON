@@ -2,6 +2,7 @@
 import streamlit as st
 from pathlib import Path
 from navigation.manager import NavigationManager
+from utils.question_type_filter import QuestionTypeFilter
 
 def render_prompt_builder():
     """Render the complete Prompt Builder stage"""
@@ -26,16 +27,26 @@ def render_prompt_builder():
     # Educational Context Section
     educational_context = render_educational_context()
     
-    # Question Configuration
-    question_count, question_type = render_question_configuration()
+    # Enhanced Question Configuration using filter system
+    question_filter = QuestionTypeFilter()
+    question_config = question_filter.render_complete_question_configuration()
     
     # Advanced Options
     difficulty_level, include_explanations, custom_instructions = render_advanced_options()
     
-    # Generate Prompt
-    if st.button("🎯 Generate Complete Prompt", type="primary", use_container_width=True):
-        generate_complete_prompt(educational_context, question_count, question_type, 
-                               difficulty_level, include_explanations, custom_instructions)
+    # Generate Prompt (only if valid selection)
+    if question_config['valid_selection']:
+        if st.button("🎯 Generate Complete Prompt", type="primary", use_container_width=True):
+            generate_complete_prompt_enhanced(
+                educational_context, 
+                question_config, 
+                difficulty_level, 
+                include_explanations, 
+                custom_instructions
+            )
+    else:
+        st.button("🎯 Generate Complete Prompt", type="primary", use_container_width=True, disabled=True)
+        st.warning("⚠️ Please select at least one question type before generating the prompt")
     
     # Display Generated Prompt
     display_generated_prompt()
@@ -84,32 +95,70 @@ def render_educational_context():
 
 
 def render_question_configuration():
-    """Render question configuration options"""
-    st.subheader("⚙️ Question Configuration")
-    
-    col1, col2 = st.columns(2)
-    with col1:
-        question_count = st.selectbox(
-            "Number of Questions:",
-            [5, 10, 15, 20],
-            index=0,
-            help="How many questions should the AI generate?"
-        )
-    
-    with col2:
-        question_type = st.selectbox(
-            "Question Types:",
-            [
-                "Mixed types", 
-                "Multiple choice only", 
-                "Numerical only",
-                "True/False only"
-            ],
-            index=0,
-            help="What types of questions do you want?"
-        )
-    
-    return question_count, question_type
+    """Legacy function - now replaced by QuestionTypeFilter"""
+    # This function is kept for compatibility but is no longer used
+    # The new enhanced system is in QuestionTypeFilter.render_complete_question_configuration()
+    pass
+
+
+def generate_complete_prompt_enhanced(educational_context, question_config, 
+                                    difficulty_level, include_explanations, custom_instructions):
+    """Enhanced prompt generation using the new question type system"""
+    if educational_context.strip():
+        with st.spinner("Generating optimized prompt..."):
+            # Load templates
+            preamble, postamble, template_source = load_template_files()
+            
+            # Build complete prompt
+            prompt_parts = []
+            prompt_parts.append(preamble)
+            prompt_parts.append(f"\n\n{educational_context}")
+            
+            # Use the enhanced type instructions
+            prompt_parts.append(f"\n\n{question_config['type_instructions']}")
+            
+            if difficulty_level != "Mixed":
+                prompt_parts.append(f"\nDifficulty level: {difficulty_level}")
+            
+            if include_explanations:
+                prompt_parts.append("\nInclude detailed explanations for both correct and incorrect answers")
+            
+            if custom_instructions.strip():
+                prompt_parts.append(f"\nAdditional requirements: {custom_instructions}")
+            
+            prompt_parts.append(f"\n\n{postamble}")
+            
+            complete_prompt = "".join(prompt_parts)
+            
+            # Store enhanced config in session state
+            st.session_state.generated_prompt = complete_prompt
+            st.session_state.prompt_config = {
+                'question_count': question_config['question_count'],
+                'selected_types': [q_type['name'] for q_type in question_config['selected_types']],
+                'distribution_mode': question_config['distribution_mode'],
+                'difficulty': difficulty_level,
+                'explanations': include_explanations,
+                'type_instructions': question_config['type_instructions']
+            }
+            
+        st.success("✅ Enhanced prompt generated successfully!")
+        st.info(template_source)
+        
+        # Show summary of configuration
+        with st.expander("📋 Prompt Configuration Summary"):
+            col1, col2 = st.columns(2)
+            with col1:
+                st.markdown("**Question Types:**")
+                for q_type in question_config['selected_types']:
+                    st.markdown(f"- {q_type['emoji']} {q_type['name']}")
+            with col2:
+                st.markdown("**Settings:**")
+                st.markdown(f"- **Count:** {question_config['question_count']}")
+                st.markdown(f"- **Distribution:** {question_config['distribution_mode']}")
+                st.markdown(f"- **Difficulty:** {difficulty_level}")
+                st.markdown(f"- **Explanations:** {'Yes' if include_explanations else 'No'}")
+    else:
+        st.error("❌ Please provide educational context before generating prompt")
 
 
 def render_advanced_options():
@@ -179,20 +228,40 @@ def generate_complete_prompt(educational_context, question_count, question_type,
 
 
 def display_generated_prompt():
-    """Display the generated prompt and next steps"""
+    """Display the generated prompt and next steps with enhanced configuration support"""
     if 'generated_prompt' in st.session_state and st.session_state.generated_prompt:
         st.subheader("📋 Generated Prompt")
         
-        # Show prompt configuration
+        # Show prompt configuration (support both old and new format)
         if 'prompt_config' in st.session_state:
             config = st.session_state.prompt_config
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                st.metric("Questions", config['question_count'])
-            with col2:
-                st.metric("Type", config['question_type'])
-            with col3:
-                st.metric("Difficulty", config['difficulty'])
+            
+            # Handle enhanced configuration format
+            if 'selected_types' in config:
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.metric("Questions", config['question_count'])
+                with col2:
+                    type_display = f"{len(config['selected_types'])} types" if len(config['selected_types']) > 1 else config['selected_types'][0]
+                    st.metric("Types", type_display)
+                with col3:
+                    st.metric("Difficulty", config['difficulty'])
+                
+                # Show selected types in detail
+                with st.expander("📊 Question Type Breakdown"):
+                    st.markdown("**Selected Types:**")
+                    for q_type in config['selected_types']:
+                        st.markdown(f"- {q_type}")
+                    st.markdown(f"**Distribution:** {config['distribution_mode']}")
+            else:
+                # Handle legacy configuration format
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.metric("Questions", config['question_count'])
+                with col2:
+                    st.metric("Type", config['question_type'])
+                with col3:
+                    st.metric("Difficulty", config['difficulty'])
         
         # Display the prompt
         st.text_area(

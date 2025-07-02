@@ -149,5 +149,5 @@ Your response must be PURE JSON starting with { and ending with }
 MUST include the "questions": [ ] array wrapper
 NO OTHER TEXT ALLOWED before or after the JSON
 
-Start your response now with: {"questions":[
+Start your response now with: {"questions":[  Provide output as json that can be either downloaded or place on clipboard. 
 ```
