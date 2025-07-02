@@ -41,4 +41,14 @@ build/
 *.egg-info/
 
 # Development directory
-devlopment/devlopment/ 
+devlopment/devlopment/
+
+
+
+# Create .gitignore to prevent future accidents
+echo "temp_data/" >> .gitignore
+echo "__pycache__/" >> .gitignore  
+echo "*.pyc" >> .gitignore
+echo ".vscode/" >> .gitignore
+echo "*.log" >> .gitignore
+echo ".env" >> .gitignore 

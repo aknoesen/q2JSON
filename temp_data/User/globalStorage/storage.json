@@ -1,0 +1,77 @@
+{
+    "telemetry.machineId": "cf6fdcc1f9726a1761ac3757c172fba1d07a8cfd4ab70ab55c70eea3c6246080",
+    "telemetry.sqmId": "{252087FF-18E5-4F19-A749-29E29D6A6826}",
+    "telemetry.devDeviceId": "58f43996-72c2-454f-a8fd-cd94c6d28012",
+    "backupWorkspaces": {
+        "workspaces": [],
+        "folders": [
+            {
+                "folderUri": "file:///c%3A/Users/aknoesen/Documents/Knoesen/Project-Root-Q2QTI/q2JSON"
+            }
+        ],
+        "emptyWindows": []
+    },
+    "windowControlHeight": 35,
+    "profileAssociations": {
+        "workspaces": {
+            "file:///c%3A/Users/aknoesen/Documents/Knoesen/Project-Root-Q2QTI/q2JSON": "__default__profile__"
+        },
+        "emptyWindows": {}
+    },
+    "theme": "vs-dark",
+    "themeBackground": "#1f1f1f",
+    "windowSplash": {
+        "zoomLevel": 0,
+        "baseTheme": "vs-dark",
+        "colorInfo": {
+            "foreground": "#cccccc",
+            "background": "#1f1f1f",
+            "editorBackground": "#1f1f1f",
+            "titleBarBackground": "#181818",
+            "titleBarBorder": "#2b2b2b",
+            "activityBarBackground": "#181818",
+            "activityBarBorder": "#2b2b2b",
+            "sideBarBackground": "#181818",
+            "sideBarBorder": "#2b2b2b",
+            "statusBarBackground": "#181818",
+            "statusBarBorder": "#2b2b2b",
+            "statusBarNoFolderBackground": "#1f1f1f"
+        },
+        "layoutInfo": {
+            "sideBarSide": "left",
+            "editorPartMinWidth": 220,
+            "titleBarHeight": 35,
+            "activityBarWidth": 48,
+            "sideBarWidth": 300,
+            "auxiliarySideBarWidth": 300,
+            "statusBarHeight": 22,
+            "windowBorder": false
+        }
+    },
+    "windowSplashWorkspaceOverride": {
+        "layoutInfo": {
+            "sideBarWidth": 300,
+            "auxiliaryBarWidth": 300,
+            "workspaces": {
+                "3e0c9e43007c3b9a450ac3699d9e9fed": {
+                    "sideBarVisible": true,
+                    "auxiliaryBarVisible": true
+                }
+            }
+        }
+    },
+    "windowsState": {
+        "lastActiveWindow": {
+            "folder": "file:///c%3A/Users/aknoesen/Documents/Knoesen/Project-Root-Q2QTI/q2JSON",
+            "backupPath": "C:\\Users\\aknoesen\\Documents\\Knoesen\\Project-Root-Q2QTI\\q2JSON\\temp_data\\Backups\\aafbb8ea13cfa7cbebecb892f47c0f7e",
+            "uiState": {
+                "mode": 0,
+                "x": 1303,
+                "y": 42,
+                "width": 1200,
+                "height": 800
+            }
+        },
+        "openedWindows": []
+    }
+}

@@ -205,6 +205,365 @@ class TestLLMRepairs:
         assert detect_llm_type(claude_response) == 'claude'
         assert detect_llm_type(copilot_response) == 'copilot'
 
+        class TestProcessRawJSON:
+            """Comprehensive tests for the process_raw_json method"""
+            
+            def setup_method(self):
+                """Setup for each test method"""
+                self.processor = JSONProcessor()
+            
+            def test_valid_json_direct_parsing(self):
+                """Test direct parsing of valid JSON"""
+                valid_json = '''
+                {
+                    "questions": [
+                        {
+                            "type": "multiple_choice",
+                            "title": "Basic Test",
+                            "question_text": "What is $2 + 2$?",
+                            "choices": ["3", "4", "5", "6"],
+                            "correct_answer": "4"
+                        }
+                    ]
+                }
+                '''
+                
+                success, data, messages = self.processor.process_raw_json(valid_json)
+                
+                assert success == True
+                assert data is not None
+                assert len(data['questions']) == 1
+                assert "Direct JSON parsing successful" in messages[-1]
+                assert data['questions'][0]['type'] == 'multiple_choice'
+            
+            def test_json_with_latex_corrections(self):
+                """Test JSON that needs LaTeX auto-corrections"""
+                json_with_latex_issues = '''
+                {
+                    "questions": [
+                        {
+                            "type": "numerical",
+                            "title": "MOSFET Question",
+                            "question_text": "Calculate the threshold voltage",
+                            "correct_answer": "0.776",
+                            "feedback_correct": "Using gamma = 0.4 and phi_F = 0.8, we get 0.776,text{V}"
+                        }
+                    ]
+                }
+                '''
+                
+                success, data, messages = self.processor.process_raw_json(json_with_latex_issues)
+                
+                assert success == True
+                assert data is not None
+                # Check that LaTeX corrections were applied
+                latex_correction_message = next((msg for msg in messages if "LaTeX corrections" in msg), None)
+                assert latex_correction_message is not None
+                # Verify the correction was applied
+                feedback = data['questions'][0]['feedback_correct']
+                assert '\\gamma' in feedback
+                assert '\\phi_F' in feedback
+                assert '\\,\\text{' in feedback
+            
+            def test_markdown_wrapped_json(self):
+                """Test extraction from markdown code blocks"""
+                markdown_json = '''
+                Here's the JSON response:
+                
+                ```json
+                {
+                    "questions": [
+                        {
+                            "type": "true_false",
+                            "title": "Markdown Test",
+                            "question_text": "Is this wrapped in markdown?",
+                            "correct_answer": "True"
+                        }
+                    ]
+                }
+                ```
+                
+                End of response.
+                '''
+                
+                success, data, messages = self.processor.process_raw_json(markdown_json)
+                
+                assert success == True
+                assert data is not None
+                assert "Preprocessing applied" in messages[0]
+                assert data['questions'][0]['title'] == 'Markdown Test'
+            
+            def test_preprocessing_fixes(self):
+                """Test various preprocessing fixes"""
+                problematic_json = '''
+                # This is a comment that breaks JSON
+                {
+                    "questions": [
+                        {
+                            "type": "multiple_choice",
+                            "title": "Smart Quotes Test",
+                            "question_text": "What about "smart quotes" and \\_underscores?",
+                            "choices": ["A", "B", "C", "D"],
+                            "correct_answer": "A"
+                        }
+                    ]
+                # Another comment
+                '''
+                
+                success, data, messages = self.processor.process_raw_json(problematic_json)
+                
+                assert success == True
+                assert data is not None
+                assert "Preprocessing applied" in messages[0]
+                # Verify smart quotes were fixed
+                question_text = data['questions'][0]['question_text']
+                assert '"smart quotes"' in question_text
+                assert '\\_' not in question_text  # Unnecessary escapes removed
+            
+            def test_unbalanced_braces_repair(self):
+                """Test automatic repair of unbalanced braces"""
+                unbalanced_json = '''
+                {
+                    "questions": [
+                        {
+                            "type": "numerical",
+                            "title": "Missing Brace",
+                            "question_text": "This JSON is missing closing braces",
+                            "correct_answer": "42"
+                        }
+                    ]
+                # Missing closing brace
+                '''
+                
+                success, data, messages = self.processor.process_raw_json(unbalanced_json)
+                
+                assert success == True
+                assert data is not None
+                assert "Preprocessing applied" in messages[0]
+                assert data['questions'][0]['correct_answer'] == "42"
+            
+            def test_llm_repair_needed(self):
+                """Test scenario requiring LLM-specific repair"""
+                chatgpt_problematic = '''
+                {
+                    "questions": [
+                        {
+                            "type": "numerical",
+                            "title": "Display Math Issue",
+                            "question_text": "Calculate frequency",
+                            "correct_answer": "2.236",
+                            "feedback_correct": "The formula is $$f = \\\\frac{c}{\\\\lambda}$$ which gives us the answer"
+                        }
+                    ]
+                }
+                '''
+                
+                success, data, messages = self.processor.process_raw_json(chatgpt_problematic, "chatgpt")
+                
+                assert success == True
+                assert data is not None
+                repair_message = next((msg for msg in messages if "automatically repaired" in msg), None)
+                assert repair_message is not None
+                # Verify display math was handled
+                feedback = data['questions'][0]['feedback_correct']
+                assert '$$' not in feedback or '[Mathematical Formula]' in feedback
+            
+            def test_invalid_json_structure(self):
+                """Test handling of valid JSON but wrong structure"""
+                wrong_structure = '''
+                {
+                    "data": [
+                        {
+                            "type": "multiple_choice",
+                            "title": "Wrong Root Key",
+                            "question_text": "This is not under 'questions' key"
+                        }
+                    ]
+                }
+                '''
+                
+                success, data, messages = self.processor.process_raw_json(wrong_structure)
+                
+                assert success == False
+                assert data is None
+                assert "missing 'questions' array" in " ".join(messages)
+            
+            def test_empty_questions_array(self):
+                """Test handling of empty questions array"""
+                empty_questions = '''
+                {
+                    "questions": []
+                }
+                '''
+                
+                success, data, messages = self.processor.process_raw_json(empty_questions)
+                
+                assert success == False
+                assert data is None
+                assert "missing 'questions' array" in " ".join(messages)
+            
+            def test_completely_malformed_json(self):
+                """Test handling of completely broken JSON"""
+                malformed_json = '''
+                {
+                    "questions": [
+                        {
+                            "type": "multiple_choice"
+                            "missing": "comma here will break everything"
+                            "also": "no closing brace"
+                '''
+                
+                success, data, messages = self.processor.process_raw_json(malformed_json)
+                
+                assert success == False
+                assert data is None
+                assert "JSON parsing error" in messages[1]  # After preprocessing message
+                assert "Auto-repair failed" in " ".join(messages)
+            
+            def test_repair_function_exception(self):
+                """Test handling when repair function itself throws exception"""
+                # Create a mock scenario that might cause repair function to fail
+                problematic_json = '''
+                {
+                    "questions": [
+                        {
+                            "type": "multiple_choice",
+                            "title": null,
+                            "question_text": undefined,
+                            "choices": [1, 2, 3, true],
+                            "correct_answer": function() { return "invalid"; }
+                        }
+                    ]
+                }
+                '''
+                
+                success, data, messages = self.processor.process_raw_json(problematic_json, "unknown_llm")
+                
+                assert success == False
+                assert data is None
+                # Should handle repair function exceptions gracefully
+                assert any("error" in msg.lower() for msg in messages)
+            
+            def test_preprocessing_with_multiple_issues(self):
+                """Test preprocessing handling multiple issues at once"""
+                complex_problematic = '''
+                # Comment at start
+                Here's some text before JSON:
+                
+                ```json
+                {
+                    "questions": [
+                        {
+                            "type": "numerical",
+                            "title": "Complex Issues Test",
+                            "question_text": "Calculate the "voltage" with μ = 5 and γ = 0.4",
+                            "correct_answer": "3.14",
+                            "feedback_correct": "Using the formula gamma(sqrt{phi_F}) = 0.776,text{V}"
+                        }
+                    # Missing closing braces
+                ```
+                
+                # Comment at end
+                '''
+                
+                success, data, messages = self.processor.process_raw_json(complex_problematic)
+                
+                assert success == True
+                assert data is not None
+                assert "Preprocessing applied" in messages[0]
+                
+                # Verify multiple fixes were applied
+                question = data['questions'][0]
+                assert '"voltage"' in question['question_text']  # Smart quotes fixed
+                assert '\\gamma' in question['feedback_correct']  # Greek letters escaped
+                assert '\\,\\text{' in question['feedback_correct']  # Comma-text pattern fixed
+            
+            def test_latex_correction_comprehensive(self):
+                """Test comprehensive LaTeX correction scenarios"""
+                latex_heavy_json = '''
+                {
+                    "questions": [
+                        {
+                            "type": "numerical",
+                            "title": "Heavy LaTeX Test",
+                            "question_text": "Calculate using gamma, phi_F, and sqrt{x}",
+                            "correct_answer": "1.414",
+                            "feedback_correct": "Using \\\\gamma = 0.4, \\\\phi_F = 0.8, we get sqrt{2} approx 1.414,text{units}. Also 5 mutext{A} and 10 ohmtext{resistance}.",
+                            "choices": ["1.414", "1.732", "2.000", "2.236"]
+                        }
+                    ]
+                }
+                '''
+                
+                success, data, messages = self.processor.process_raw_json(latex_heavy_json)
+                
+                assert success == True
+                assert data is not None
+                
+                # Verify LaTeX corrections
+                question = data['questions'][0]
+                assert '\\gamma' in question['question_text']
+                assert '\\phi_F' in question['question_text']
+                assert '\\sqrt{' in question['question_text']
+                
+                feedback = question['feedback_correct']
+                assert '\\\\gamma' not in feedback  # Double backslashes removed
+                assert '\\gamma' in feedback
+                assert '\\,\\mu\\text{' in feedback  # mutext corrected
+                assert '\\,\\Omega\\text{' in feedback  # ohmtext corrected
+                assert '\\,\\text{' in feedback  # comma-text corrected
+            
+            def test_processing_summary_tracking(self):
+                """Test that processing attempts are properly tracked"""
+                test_json = '''
+                {
+                    "questions": [
+                        {
+                            "type": "multiple_choice",
+                            "title": "Summary Test",
+                            "question_text": "Test tracking",
+                            "choices": ["A", "B", "C", "D"],
+                            "correct_answer": "A"
+                        }
+                    ]
+                }
+                '''
+                
+                # Process successfully
+                success, data, messages = self.processor.process_raw_json(test_json)
+                
+                assert success == True
+                
+                # Check summary tracking
+                summary = self.processor.get_processing_summary()
+                assert 'repair_attempts' in summary
+                assert 'validation_results' in summary
+                assert 'processing_log' in summary
+            
+            def test_auto_llm_type_detection(self):
+                """Test automatic LLM type detection and appropriate repair"""
+                chatgpt_style = '''
+                {
+                    "questions": [
+                        {
+                            "type": "numerical",
+                            "title": "ChatGPT Style",
+                            "question_text": "Calculate this",
+                            "correct_answer": "1.0",
+                            "feedback_correct": "The answer uses $$\\\\frac{a}{b}$$ formula"
+                        }
+                    ]
+                }
+                '''
+                
+                # Use "auto" to trigger detection
+                success, data, messages = self.processor.process_raw_json(chatgpt_style, "auto")
+                
+                assert success == True
+                assert data is not None
+                # Should detect and repair ChatGPT-style issues
+                feedback = data['questions'][0]['feedback_correct']
+                assert '\\\\frac' not in feedback  # Double backslashes should be fixed
 
 def run_manual_test_with_file(filepath: str):
     """
