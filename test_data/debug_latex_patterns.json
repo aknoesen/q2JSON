@@ -1,0 +1,26 @@
+{
+  "questions": [
+    {
+      "type": "multiple_choice",
+      "title": "MOSFET Corner Case Test",
+      "question_text": "Calculate the voltage across the resistor. The voltage is 0.5,text{V} and the current has gamma dependence.",
+      "choices": [
+        "0.5,text{V}",
+        "The gamma coefficient affects current",
+        "phi_F determines threshold",
+        "None of the above"
+      ],
+      "correct_answer": "0.5,text{V}",
+      "feedback_correct": "The gamma parameter and phi_F are critical in MOSFET analysis.",
+      "feedback_incorrect": "Remember that gamma and phi_F have specific LaTeX formatting requirements."
+    },
+    {
+      "type": "numerical",
+      "title": "Greek Letter Test",
+      "question_text": "What is the value of gamma when phi_F = 0.7 V?",
+      "correct_answer": "gamma * phi_F",
+      "feedback_correct": "gamma and phi_F must be properly formatted as LaTeX.",
+      "feedback_incorrect": "Check your gamma and phi_F calculations."
+    }
+  ]
+}
