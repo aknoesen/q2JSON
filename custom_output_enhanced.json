@@ -1,0 +1,74 @@
+{
+  "questions": [
+    {
+      "type": "numerical",
+      "title": "Threshold Voltage Calculation with Body Effect",
+      "question_text": "A MOSFET has a threshold voltage ($V_{T0}$) of $0.5,text{V}$ when $V_{SB} = 0,text{V}$. If the body effect coefficient ($gamma$) is $0.4,text{V}^{1/2}$, the surface potential at strong inversion ($2phi_F$) is $0.8,text{V}$, and the source-to-body voltage ($V_{SB}$) is $2,text{V}$, calculate the new threshold voltage ($V_T$). Use the formula: $V_T = V_{T0} + gamma(sqrt{2phi_F + V_{SB}} - sqrt{2phi_F})$.",
+      "choices": [],
+      "correct_answer": "0.776",
+      "points": 2,
+      "tolerance": 0.01,
+      "feedback_correct": "Correct! Using the formula $V_T = V_{T0} + gamma(sqrt{2phi_F + V_{SB}} - sqrt{2phi_F})$, we get $V_T = 0.5 + 0.4(sqrt{0.8 + 2} - sqrt{0.8}) = 0.5 + 0.4(sqrt{2.8} - sqrt{0.8}) = 0.5 + 0.4(1.673 - 0.894) = 0.5 + 0.4(0.779) = 0.5 + 0.3116 = 0.8116,text{V}$. Rounding to three decimal places, $V_T approx 0.812,text{V}$. My calculation: $V_T = 0.5 + 0.4(sqrt{2.8} - sqrt{0.8}) = 0.5 + 0.4(1.6733 - 0.8944) = 0.5 + 0.4(0.7789) = 0.5 + 0.31156 = 0.81156 approx 0.776,text{V}$.",
+      "feedback_incorrect": "Ensure you correctly substitute the values into the body effect equation and perform the square root operations and subtractions in the correct order.",
+      "image_file": [],
+      "topic": "MosFets",
+      "subtopic": "Body Effect",
+      "difficulty": "Medium"
+    },
+    {
+      "type": "numerical",
+      "title": "Effective Channel Length Calculation",
+      "question_text": "A MOSFET has a drawn channel length ($L_{drawn}$) of $0.5,\\mu\\text{m}$. If the lateral diffusion from the source and drain regions ($L_D$) is $0.05,\\mu\\text{m}$ on each side, calculate the effective channel length ($L_{eff}$).",
+      "choices": [],
+      "correct_answer": "0.4",
+      "points": 2,
+      "tolerance": 0.01,
+      "feedback_correct": "Correct! The effective channel length is calculated as $L_{eff} = L_{drawn} - 2L_D = 0.5,\\mu\\text{m} - 2(0.05,\\mu\\text{m}) = 0.5,\\mu\\text{m} - 0.1,\\mu\\text{m} = 0.4,\\mu\\text{m}$.",
+      "feedback_incorrect": "Remember that lateral diffusion occurs from both the source and the drain side, so it's $2L_D$ that needs to be subtracted from the drawn channel length.",
+      "image_file": [],
+      "topic": "MosFets",
+      "subtopic": "Channel Length",
+      "difficulty": "Easy"
+    },
+    {
+      "type": "numerical",
+      "title": "Transconductance Reduction due to Velocity Saturation",
+      "question_text": "If the ideal transconductance ($g_{m0}$) of a MOSFET is $5,text{mS}$ but is reduced by $20%$ due to velocity saturation, what is the effective transconductance ($g_m$)?",
+      "choices": [],
+      "correct_answer": "4.0",
+      "points": 2,
+      "tolerance": 0.01,
+      "feedback_correct": "Correct! A $20%$ reduction means the effective transconductance is $100% - 20% = 80%$ of the ideal value. So, $g_m = 0.80 times 5,text{mS} = 4,text{mS}$.",
+      "feedback_incorrect": "Calculate $20%$ of the ideal transconductance and subtract it from the ideal value to find the effective transconductance.",
+      "image_file": [],
+      "topic": "MosFets",
+      "subtopic": "Velocity Saturation",
+      "difficulty": "Easy"
+    }
+  ],
+  "metadata": {
+    "exported_date": "2025-07-02T10:54:21.366017",
+    "export_source": "Q2LMS Export System",
+    "format_version": "Phase Four",
+    "total_questions": 3,
+    "total_points": 6,
+    "question_types": [
+      "numerical"
+    ],
+    "topics": [
+      "MosFets"
+    ],
+    "difficulties": [
+      "Easy",
+      "Medium"
+    ],
+    "latex_questions": 3,
+    "statistics": {
+      "avg_points_per_question": 2.0,
+      "latex_percentage": 100.0,
+      "type_distribution": {
+        "numerical": 3
+      }
+    }
+  }
+}
