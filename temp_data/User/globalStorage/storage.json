@@ -14,7 +14,9 @@
     "windowControlHeight": 35,
     "profileAssociations": {
         "workspaces": {
-            "file:///c%3A/Users/aknoesen/Documents/Knoesen/Project-Root-Q2QTI/q2JSON": "__default__profile__"
+            "file:///c%3A/Users/aknoesen/Documents/Knoesen/Project-Root-Q2QTI/q2JSON": "__default__profile__",
+            "file:///c%3A/Users/aknoesen/Documents/Knoesen/Project-Root-Q2QTI/q2lms": "__default__profile__",
+            "file:///c%3A/Users/aknoesen/Documents/Knoesen/Project-Root-Q2QTI/q2lms/q2lms.code-workspace": "__default__profile__"
         },
         "emptyWindows": {}
     },
@@ -42,18 +44,26 @@
             "editorPartMinWidth": 220,
             "titleBarHeight": 35,
             "activityBarWidth": 48,
-            "sideBarWidth": 300,
-            "auxiliarySideBarWidth": 300,
+            "sideBarWidth": 198,
+            "auxiliarySideBarWidth": 484,
             "statusBarHeight": 22,
             "windowBorder": false
         }
     },
     "windowSplashWorkspaceOverride": {
         "layoutInfo": {
-            "sideBarWidth": 300,
-            "auxiliaryBarWidth": 300,
+            "sideBarWidth": 198,
+            "auxiliaryBarWidth": 484,
             "workspaces": {
                 "3e0c9e43007c3b9a450ac3699d9e9fed": {
+                    "sideBarVisible": true,
+                    "auxiliaryBarVisible": true
+                },
+                "4dacd94deb92b074f6f9dc2674eccb93": {
+                    "sideBarVisible": true,
+                    "auxiliaryBarVisible": true
+                },
+                "ddb5c06478fe97b6cf9012e3ec91d7cb": {
                     "sideBarVisible": true,
                     "auxiliaryBarVisible": true
                 }

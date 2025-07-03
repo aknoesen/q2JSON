@@ -1,0 +1,23 @@
+# Requirements for Q2LMS Extracted Components
+# These components provide Q2JSON Stage 4 functionality
+
+# Core Dependencies
+streamlit>=1.28.0          # Web application framework
+pandas>=2.0.0              # Data manipulation and analysis
+numpy>=1.24.0              # Numerical computing (required by pandas)
+
+# Optional Dependencies for Enhanced Features
+plotly>=5.15.0             # Interactive charts for validation dashboard (optional)
+matplotlib>=3.7.0          # Static plots (alternative to plotly)
+seaborn>=0.12.0           # Statistical data visualization (optional)
+
+# Development and Testing (optional)
+pytest>=7.4.0             # Testing framework
+pytest-streamlit>=0.2.0   # Streamlit-specific testing utilities
+black>=23.0.0             # Code formatting
+flake8>=6.0.0             # Code linting
+mypy>=1.5.0               # Type checking
+
+# Documentation (optional)
+sphinx>=7.0.0             # Documentation generation
+sphinx-rtd-theme>=1.3.0   # Read the Docs theme
