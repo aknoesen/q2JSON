@@ -127,6 +127,7 @@ class JSONProcessor:
     def validate_questions(self, questions_data: Dict) -> Dict:
         """
         Comprehensive validation of question content and structure
+        Three-tier validation: Structure, LaTeX, Mathematical Consistency
         
         Args:
             questions_data: Parsed questions data
@@ -144,7 +145,8 @@ class JSONProcessor:
             'issues': [],
             'question_analysis': [],
             'unicode_violations': [],
-            'latex_issues': []
+            'latex_issues': [],
+            'mathematical_consistency': {}  # New: Mathematical consistency results
         }
         
         required_fields = ['type', 'title', 'question_text']
@@ -157,7 +159,8 @@ class JSONProcessor:
                 'status': 'valid',
                 'issues': [],
                 'unicode_violations': [],
-                'latex_issues': []
+                'latex_issues': [],
+                'mathematical_issues': []  # New: Mathematical consistency issues
             }
             
             # Check required fields
@@ -180,6 +183,14 @@ class JSONProcessor:
                 if q_analysis['status'] == 'valid':
                     q_analysis['status'] = 'warning'
                 validation_results['latex_issues'].extend(latex_issues)
+            
+            # Phase 3: Mathematical consistency validation for numerical questions
+            if question.get('type') == 'numerical':
+                mathematical_issues = self._check_mathematical_consistency_single(question)
+                if mathematical_issues:
+                    q_analysis['mathematical_issues'].extend(mathematical_issues)
+                    if q_analysis['status'] == 'valid':
+                        q_analysis['status'] = 'warning'
             
             # Validate question type specific requirements
             q_type = question.get('type')
@@ -214,6 +225,10 @@ class JSONProcessor:
                 validation_results['errors'] += 1
             
             validation_results['question_analysis'].append(q_analysis)
+        
+        # Phase 3: Complete mathematical consistency analysis
+        mathematical_analysis = self._detect_mathematical_consistency(questions_data)
+        validation_results['mathematical_consistency'] = mathematical_analysis
         
         self.validation_results = validation_results
         return validation_results
@@ -344,6 +359,125 @@ class JSONProcessor:
         
         # Check for bare mathematical expressions (should be in $ delimiters)
         # Look for patterns like "10Ω" or "90°" that should be "$10\\,\\Omega$" or "$90^\\circ$"
+        # PHASE 2.5 FIX: Precision validation - Allow educational content, detect real LaTeX errors
+        
+        import re
+        
+        def is_educational_pattern(text_to_check):
+            """Check if text contains legitimate educational patterns that should be allowed"""
+            educational_patterns = {
+                'chemical_formulas': r'\b[A-Z][a-z]?_?\d*\b',  # SiO_2, Si, etc.
+                'mathematical_vars': r'\b[A-Z][A-Z]?_?[0-9]+\b',  # T0, V_T0, etc.
+                'decimal_parts': r'\b0\d*',  # 05 in 0.05, etc.
+                'calculation_values': r'\b[0-9]{3,5}\b',  # 673, 894, 779, 31156, 81156 (intermediate calculations)
+                'unit_notation': r'\\text\{[^}]+\}',  # \text{V}, \text{A} (proper LaTeX)
+                'latex_wrapped_content': r'\$[^$]*\$',  # Already in LaTeX delimiters
+                'subscript_notation': r'_\d+',  # _2 in chemical formulas like SiO_2
+                'chemical_interfaces': r'\b[A-Z][a-z]*-[A-Z][a-z]*\b',  # Si-SiO interface notation
+                'variable_subscripts': r'\b[gmT]\d+\b',  # g_m0, T0, etc.
+                'latex_commands': r'\\[a-zA-Z]+\{[^}]*\}',  # Proper LaTeX commands like \text{}, \times
+            }
+            
+            for pattern_name, pattern in educational_patterns.items():
+                if re.search(pattern, text_to_check):
+                    return True
+            return False
+        
+        def has_real_latex_syntax_errors(text_to_check):
+            """Check for actual LaTeX syntax errors that should be flagged"""
+            import re
+            
+            # Check for LaTeX syntax errors with simplified patterns
+            latex_errors = []
+            
+            # 1. Check for text{} without backslash (but allow \text{})
+            text_pattern = r'text\{[^}]+\}'
+            if re.search(text_pattern, text_to_check):
+                # Check if it's properly escaped
+                escaped_text_pattern = r'\\text\{[^}]+\}'
+                text_matches = re.findall(text_pattern, text_to_check)
+                escaped_matches = re.findall(escaped_text_pattern, text_to_check)
+                if len(text_matches) > len(escaped_matches):
+                    latex_errors.append('missing_backslash_text')
+            
+            # 2. Check for times without backslash (but allow \times)
+            if re.search(r'\btimes\b', text_to_check) and not re.search(r'\\times\b', text_to_check):
+                latex_errors.append('missing_backslash_times')
+            
+            # 3. Check for unescaped % in math content
+            percent_matches = re.findall(r'\d+%', text_to_check)
+            escaped_percent_matches = re.findall(r'\d+\\%', text_to_check)
+            if len(percent_matches) > len(escaped_percent_matches):
+                latex_errors.append('unescaped_percent')
+            
+            # 4. Check for invalid mutext command
+            if re.search(r'mutext\{[^}]+\}', text_to_check):
+                latex_errors.append('invalid_mutext')
+            
+            # 5. Check for common math commands without backslash
+            math_commands = ['frac', 'sqrt', 'alpha', 'beta', 'gamma', 'theta', 'lambda', 'sigma', 'omega', 'Omega']
+            for cmd in math_commands:
+                if re.search(rf'\b{cmd}\{{', text_to_check) and not re.search(rf'\\{cmd}\{{', text_to_check):
+                    latex_errors.append(f'missing_backslash_{cmd}')
+            
+            if latex_errors:
+                return True, latex_errors[0]  # Return first error found
+            return False, None
+        
+        def is_within_latex_context(text, match_pos):
+            """Check if a match is within LaTeX delimiters"""
+            # Find all LaTeX blocks in the text
+            latex_blocks = []
+            for match in re.finditer(r'\$[^$]*\$', text):
+                latex_blocks.append((match.start(), match.end()))
+            
+            # Check if match_pos is within any LaTeX block
+            for start, end in latex_blocks:
+                if start <= match_pos < end:
+                    return True
+            return False
+        
+        def extract_problematic_matches(text_to_check, pattern):
+            """Extract matches that are NOT educational patterns and NOT within proper LaTeX"""
+            problematic_matches = []
+            
+            for match in re.finditer(pattern, text_to_check):
+                match_text = match.group()
+                match_pos = match.start()
+                
+                # Skip if it's an educational pattern (Phase 2 preservation)
+                if is_educational_pattern(match_text):
+                    continue
+                    
+                # Skip if it's within proper LaTeX delimiters and not an error
+                if is_within_latex_context(text_to_check, match_pos):
+                    continue
+                
+                problematic_matches.append(match_text)
+            
+            return problematic_matches
+        
+        # PHASE 2.5: First check for real LaTeX syntax errors (restore error detection)
+        has_syntax_error, error_type = has_real_latex_syntax_errors(text)
+        if has_syntax_error:
+            if error_type == 'missing_backslash_text':
+                matches = re.findall(r'text\{[^}]+\}', text)
+                escaped_matches = re.findall(r'\\text\{[^}]+\}', text)
+                if len(matches) > len(escaped_matches):
+                    issues.append(f"Field '{field_name}' has LaTeX syntax error: missing backslash - use \\text{{}} not text{{}}")
+            elif error_type == 'missing_backslash_times':
+                issues.append(f"Field '{field_name}' has LaTeX syntax error: missing backslash - use \\times not times")
+            elif error_type == 'unescaped_percent':
+                matches = re.findall(r'\d+%', text)
+                issues.append(f"Field '{field_name}' has LaTeX syntax error: {matches} - use \\% in math mode")
+            elif error_type == 'invalid_mutext':
+                matches = re.findall(r'mutext\{[^}]+\}', text)
+                issues.append(f"Field '{field_name}' has LaTeX syntax error: {matches} - use \\mu\\text{{}} not mutext{{}}")
+            elif 'missing_backslash_' in error_type:
+                cmd = error_type.replace('missing_backslash_', '')
+                issues.append(f"Field '{field_name}' has LaTeX syntax error: missing backslash - use \\{cmd}{{}} not {cmd}{{}}")
+        
+        # Apply bare math validation with educational content awareness (Phase 2 preservation)
         bare_math_patterns = [
             (r'\d+Ω', 'Use ${}\\,\\Omega$ for ohms'),
             (r'\d+°', 'Use ${}^\\circ$ for degrees'),
@@ -351,11 +485,12 @@ class JSONProcessor:
             (r'\d+\^\d+', 'Use ${}$ for superscripts'),
         ]
         
-        import re
         for pattern, message in bare_math_patterns:
-            matches = re.findall(pattern, text)
-            if matches:
-                issues.append(f"Field '{field_name}' may have bare math: {matches} - {message}")
+            # PHASE 2.5: Only flag matches that are NOT educational patterns
+            problematic_matches = extract_problematic_matches(text, pattern)
+            
+            if problematic_matches:
+                issues.append(f"Field '{field_name}' may have bare math: {problematic_matches} - {message}")
         
         return issues
     def export_json(self, questions_data: Dict, format_type: str = "standard", 
@@ -438,3 +573,185 @@ class JSONProcessor:
             text += '}' * (open_braces - close_braces)
 
         return text
+    
+    def _detect_mathematical_consistency(self, questions_data: Dict) -> Dict:
+        """
+        Phase 3: Mathematical consistency detection based on main_enhanced.py logic
+        Detects contradictions like 0.776 vs 0.812 in Question 8
+        """
+        mathematical_results = {
+            'total_checked': 0,
+            'contradictions_found': 0,
+            'contradictions': [],
+            'numerical_questions': 0
+        }
+        
+        questions = questions_data.get('questions', [])
+        
+        for i, question in enumerate(questions):
+            if question.get('type') == 'numerical':
+                mathematical_results['numerical_questions'] += 1
+                mathematical_results['total_checked'] += 1
+                
+                # Extract declared answer
+                try:
+                    declared_answer = float(question.get('correct_answer', '0'))
+                except (ValueError, TypeError):
+                    continue
+                
+                # Check feedback for contradictory values
+                feedback_text = question.get('feedback_correct', '')
+                if feedback_text:
+                    contradictory_values = self._extract_mathematical_values(
+                        feedback_text, declared_answer
+                    )
+                    
+                    for value, context in contradictory_values:
+                        difference_percent = abs(value - declared_answer) / declared_answer * 100
+                        
+                        # Use 2% threshold for educational content sensitivity (from CLI)
+                        if difference_percent > 2.0:
+                            contradiction = {
+                                'question_index': i + 1,
+                                'question_title': question.get('title', f'Question {i+1}'),
+                                'declared_answer': declared_answer,
+                                'found_value': value,
+                                'difference_percent': round(difference_percent, 1),
+                                'severity': self._classify_mathematical_severity(difference_percent),
+                                'context': context
+                            }
+                            
+                            mathematical_results['contradictions'].append(contradiction)
+                            mathematical_results['contradictions_found'] += 1
+        
+        return mathematical_results
+    
+    def _extract_mathematical_values(self, text: str, declared_value: float) -> List[Tuple[float, str]]:
+        """
+        Extract mathematical values using enhanced patterns from main_enhanced.py
+        Based on patterns that successfully find 0.812 in Question 8
+        """
+        extracted_values = []
+        
+        # Enhanced patterns based on CLI success (from mathematical_consistency_detector_enhanced.py)
+        final_answer_patterns = [
+            # Approximation patterns (finds "approx 0.812")
+            (r'[A-Z_]*\s*≈\s*(\d+\.\d+)', 'Approximation'),
+            (r'[A-Z_]*\s*approx\s*(\d+\.\d+)', 'Approximation'),
+            (r'approx\s*(\d+\.\d+)', 'Approximation'),
+            
+            # Unit patterns (finds "0.812,text{V}")
+            (r'(\d+\.\d+),text\{[VvAa]\}', 'Value with units'),
+            (r'(\d+\.\d+)\s*V[.\s]', 'Voltage value'),
+            (r'(\d+\.\d+)\s*text\{V\}', 'LaTeX voltage'),
+            
+            # Calculation result patterns
+            (r'[A-Z_]*\s*=\s*(\d+\.\d+)', 'Calculation result'),
+            (r'get\s*[A-Z_]*\s*=\s*(\d+\.\d+)', 'Calculation gives'),
+            (r'gives.*?(\d+\.\d+)', 'Calculation gives'),
+            
+            # Rounding patterns (finds calculation endpoints)
+            (r'Rounding.*?(\d+\.\d+)', 'Rounding result'),
+            (r'three decimal places.*?(\d+\.\d+)', 'Rounded value'),
+            
+            # Alternative calculation patterns
+            (r'My calculation.*?(\d+\.\d+)', 'Alternative calculation'),
+        ]
+        
+        # Basic constants to skip (from CLI logic)
+        basic_constants = {0.5, 0.4, 1.0, 2.0, 3.0, 4.0, 5.0, 0.8, 0.9, 1.6, 1.7}
+        
+        for pattern, context_type in final_answer_patterns:
+            matches = re.findall(pattern, text, re.IGNORECASE)
+            for match in matches:
+                try:
+                    value = float(match)
+                    
+                    # Skip if it's exactly the declared value
+                    if abs(value - declared_value) < 0.001:
+                        continue
+                    
+                    # Skip basic constants
+                    if value in basic_constants:
+                        continue
+                    
+                    # Skip very small values (likely intermediate calculations)
+                    if value < 0.1:
+                        continue
+                    
+                    # Get context around this value
+                    context = self._get_mathematical_context(text, match, 50)
+                    
+                    extracted_values.append((value, f"{context_type}: {context}"))
+                    
+                except ValueError:
+                    continue
+        
+        return extracted_values
+    
+    def _get_mathematical_context(self, text: str, value_str: str, context_length: int = 50) -> str:
+        """Get context around a mathematical value for better understanding"""
+        try:
+            value_pos = text.find(value_str)
+            if value_pos == -1:
+                return "Context not found"
+            
+            start = max(0, value_pos - context_length)
+            end = min(len(text), value_pos + len(value_str) + context_length)
+            
+            context = text[start:end].strip()
+            
+            # Clean up context for display
+            context = re.sub(r'\s+', ' ', context)
+            if len(context) > 100:
+                context = context[:97] + "..."
+            
+            return context
+        except:
+            return "Context extraction failed"
+    
+    def _classify_mathematical_severity(self, difference_percent: float) -> str:
+        """Classify mathematical contradiction severity (from CLI logic)"""
+        if difference_percent <= 10.0:
+            return "Minor"
+        elif difference_percent <= 25.0:
+            return "Major" 
+        else:
+            return "Severe"
+    
+    def _check_mathematical_consistency_single(self, question: Dict) -> List[str]:
+        """
+        Check mathematical consistency for a single question
+        Returns list of mathematical issues found
+        """
+        issues = []
+        
+        # Only check numerical questions
+        if question.get('type') != 'numerical':
+            return issues
+        
+        try:
+            declared_answer = float(question.get('correct_answer', '0'))
+        except (ValueError, TypeError):
+            return issues
+        
+        # Check feedback for contradictory values
+        feedback_text = question.get('feedback_correct', '')
+        if feedback_text:
+            contradictory_values = self._extract_mathematical_values(
+                feedback_text, declared_answer
+            )
+            
+            for value, context in contradictory_values:
+                difference_percent = abs(value - declared_answer) / declared_answer * 100
+                
+                # Use 2% threshold for educational content sensitivity
+                if difference_percent > 2.0:
+                    severity = self._classify_mathematical_severity(difference_percent)
+                    issues.append(
+                        f"Mathematical inconsistency: declared answer {declared_answer} "
+                        f"vs found {value} ({difference_percent:.1f}% difference, {severity}) "
+                        f"in {context[:50]}..."
+                    )
+        
+        return issues
