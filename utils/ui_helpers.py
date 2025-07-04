@@ -108,6 +108,7 @@ def load_css():
 
 def create_sidebar():
     """Create the sidebar with enhanced visual progress indicators"""
+    st.sidebar.image("assets/json2lms_logo.svg", width=600)
     # Map stage index to names and icons
     stage_data = [
         {"name": "Prompt Builder", "icon": "🎯", "desc": "Create AI prompts"},

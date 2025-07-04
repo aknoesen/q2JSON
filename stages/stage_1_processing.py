@@ -356,3 +356,22 @@ def display_processing_results():
                 target_stage=2,
                 label="Go to JSON Validation & Download"
             )
+    st.markdown(
+    """
+    <div style="
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 2rem 2rem 1.5rem 2rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 8px rgba(30,60,120,0.04);
+        border: 1px solid #e0e3e8;
+    ">
+    """,
+    unsafe_allow_html=True,
+)
+    st.markdown(
+        '<h3 style="color:#1f77b4;margin-bottom:1.2rem;">Section Title</h3>',
+        unsafe_allow_html=True,
+    )
+    # ...your form fields here...
+    st.markdown("</div>", unsafe_allow_html=True)
