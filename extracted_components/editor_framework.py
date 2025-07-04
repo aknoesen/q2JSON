@@ -292,8 +292,29 @@ class Q2JSONEditorFramework:
     def _edit_multiple_choice(self, question: Dict[str, Any]) -> Dict[str, Any]:
         """Edit multiple choice question specific fields."""
         with st.expander("🔘 Multiple Choice Options", expanded=True):
+            # DEBUG: Log the question structure
+            st.write(f"DEBUG: Question keys: {list(question.keys())}")
+            st.write(f"DEBUG: Has 'choices': {'choices' in question}")
+            st.write(f"DEBUG: Has 'options': {'options' in question}")
+            if 'choices' in question:
+                st.write(f"DEBUG: choices length: {len(question['choices'])}")
+                st.write(f"DEBUG: choices content: {question['choices']}")
+            if 'options' in question:
+                st.write(f"DEBUG: options length: {len(question['options'])}")
+                st.write(f"DEBUG: options content: {question['options']}")
+            
+            # Handle both 'choices' and 'options' field names
+            current_options = question.get('options', [])
+            if not current_options and 'choices' in question:
+                current_options = question['choices']
+                st.write(f"DEBUG: Using 'choices' field, found {len(current_options)} choices")
+            
+            # If still no options, provide defaults
+            if not current_options:
+                current_options = ['', '', '', '']
+                st.write("DEBUG: No options or choices found, using defaults")
+            
             # Number of options
-            current_options = question.get('options', ['', '', '', ''])
             num_options = st.number_input(
                 "Number of options",
                 min_value=2,
@@ -332,7 +353,9 @@ class Q2JSONEditorFramework:
                     if is_correct:
                         new_correct_answers.append(i)
             
+            # Save as both 'options' and 'choices' to maintain compatibility
             question['options'] = options
+            question['choices'] = options  # Add this for compatibility
             question['correct_answers'] = new_correct_answers
             
             # Multiple correct answers allowed?

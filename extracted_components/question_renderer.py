@@ -206,12 +206,32 @@ class Q2JSONQuestionRenderer:
                               show_answers: bool, show_feedback: bool) -> str:
         """Render multiple choice question."""
         html_parts = []
+        
+        # DEBUG: Log the question structure to trace choices vs options issue
+        print(f"DEBUG: Question keys: {list(question.keys())}")
+        print(f"DEBUG: Question type: {question.get('type')}")
+        print(f"DEBUG: Has 'choices': {'choices' in question}")
+        print(f"DEBUG: Has 'options': {'options' in question}")
+        if 'choices' in question:
+            print(f"DEBUG: choices length: {len(question['choices'])}")
+            print(f"DEBUG: choices content: {question['choices']}")
+        if 'options' in question:
+            print(f"DEBUG: options length: {len(question['options'])}")
+            print(f"DEBUG: options content: {question['options']}")
+        
+        # Handle both 'choices' and 'options' field names
         options = question.get('options', [])
+        if not options and 'choices' in question:
+            options = question['choices']
+            print(f"DEBUG: Using 'choices' field, found {len(options)} choices")
+        
         correct_answers = question.get('correct_answers', [])
         
         if not options:
+            print("DEBUG: No options found - returning error message")
             return self._render_error("No options provided for multiple choice question")
         
+        print(f"DEBUG: Final options to render: {len(options)} options")
         html_parts.append('<div class="q2json-options">')
         
         for i, option in enumerate(options):

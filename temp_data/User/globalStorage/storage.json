@@ -45,7 +45,7 @@
             "titleBarHeight": 35,
             "activityBarWidth": 48,
             "sideBarWidth": 246,
-            "auxiliarySideBarWidth": 0,
+            "auxiliarySideBarWidth": 662,
             "statusBarHeight": 22,
             "windowBorder": false
         }
@@ -57,7 +57,7 @@
             "workspaces": {
                 "3e0c9e43007c3b9a450ac3699d9e9fed": {
                     "sideBarVisible": true,
-                    "auxiliaryBarVisible": false
+                    "auxiliaryBarVisible": true
                 },
                 "4dacd94deb92b074f6f9dc2674eccb93": {
                     "sideBarVisible": true,
