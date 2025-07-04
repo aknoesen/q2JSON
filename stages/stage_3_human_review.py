@@ -22,27 +22,32 @@ except ImportError:
 
 def render_human_review():
     """Render the complete Human Review & Editing stage"""
-    
+
     # Progress indicator
     progress = (st.session_state.current_stage + 1) / 4
     st.progress(progress)
     st.markdown(f"**Stage {st.session_state.current_stage + 1} of 4**: Human Review & Editing")
 
     st.header("👥 Human Review & Editing")
-    
+
     # Check if we have validated questions from Stage 2
     if not has_validated_questions():
         render_no_questions_warning()
+        # Still show navigation at bottom, but disable Next/Finish
+        render_main_content_navigation()
         return
-    
+
     # Skip the Q2JSON component check since we know they don't exist
     # and go directly to the working editor
-    
+
     # Render the editor interface
     render_editor_interface()
-    
+
     # Workflow completion
     render_workflow_completion()
+
+    # Bottom navigation (Priority 3)
+    render_main_content_navigation()
 
     # LaTeX correction integration (fixed)
     questions_data = st.session_state.get('questions_data', None)
@@ -402,137 +407,193 @@ def render_teacher_view(selected_question, question_idx, questions):
         render_question_editor(selected_question, question_idx)
 
 def render_question_editor(selected_question, question_idx):
-    """Render the question editor with proper form handling"""
-    
-    st.subheader(f"✏️ Edit Question {question_idx + 1}")
-    
-    # Check if we just discarded/reset changes
-    just_discarded = st.session_state.get(f'discarded_{question_idx}', False)
-    just_reset = st.session_state.get(f'reset_{question_idx}', False)
-    
-    if just_discarded:
-        st.success("✅ Changes discarded - form reset to original")
-        del st.session_state[f'discarded_{question_idx}']
-    
-    if just_reset:
-        st.success("✅ Form reset to saved version")
-        del st.session_state[f'reset_{question_idx}']
-    
-    # Question title - use value parameter for default, key for state
+    """Render the question editor with professional, standardized form styling (Priority 4)"""
+
+    st.markdown(
+        """
+        <div style="
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 2rem 2rem 1.5rem 2rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 8px rgba(30,60,120,0.04);
+            border: 1px solid #e0e3e8;
+        ">
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.markdown(
+        '<h3 style="color:#1f77b4;margin-bottom:1.2rem;">✏️ Edit Question</h3>',
+        unsafe_allow_html=True,
+    )
+
+    # Question title
     title_key = f"title_{question_idx}"
     title_value = selected_question.get('title', '')
-    
-    new_title = st.text_input(
+
+    st.text_input(
         "Question Title",
         value=title_value,
         key=title_key,
-        help="Changes appear in preview immediately"
+        help="Changes appear in preview immediately",
+        placeholder="Enter a clear, descriptive question title...",
     )
-    
+
     # Question text
     text_key = f"text_{question_idx}"
     text_value = selected_question.get('question_text', '')
-    
-    new_text = st.text_area(
+
+    st.text_area(
         "Question Text",
         value=text_value,
         height=100,
         key=text_key,
-        help="Changes appear in preview immediately"
+        help="Changes appear in preview immediately",
+        placeholder="Enter the full question text here...",
     )
-    
+
     # Question type
     type_key = f"type_{question_idx}"
     current_type = selected_question.get('type', 'multiple_choice')
-    
+
     try:
         type_index = ["multiple_choice", "numerical", "true_false", "short_answer"].index(current_type)
     except ValueError:
         type_index = 0
-    
-    new_type = st.selectbox(
+
+    st.selectbox(
         "Question Type",
         ["multiple_choice", "numerical", "true_false", "short_answer"],
         index=type_index,
         key=type_key,
-        help="Changes appear in preview immediately"
+        help="Changes appear in preview immediately",
     )
-    
+
     # Type-specific editors
-    if new_type == 'multiple_choice':
+    if st.session_state[type_key] == 'multiple_choice':
         render_multiple_choice_editor(selected_question, question_idx)
-    elif new_type == 'numerical':
+    elif st.session_state[type_key] == 'numerical':
         render_numerical_editor(selected_question, question_idx)
-    elif new_type == 'true_false':
+    elif st.session_state[type_key] == 'true_false':
         render_true_false_editor(selected_question, question_idx)
     else:
         render_text_editor(selected_question, question_idx)
-    
-    # Common fields
+
     render_common_fields(selected_question, question_idx)
-    
+
+    st.markdown(
+        """
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
     # Save and navigation section
-    st.divider()
-    st.subheader("💾 Save & Navigate")
-    
+    st.markdown(
+        """
+        <div style="
+            background: #f1f3f4;
+            border-radius: 10px;
+            padding: 1.2rem 2rem 1.2rem 2rem;
+            margin-top: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid #e0e3e8;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        ">
+        """,
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        '<h4 style="color:#1f77b4;margin-bottom:1rem;">💾 Save & Navigate</h4>',
+        unsafe_allow_html=True,
+    )
+
     # Check if there are unsaved changes by comparing widget values to saved values
     has_changes = (
-        new_title != selected_question.get('title', '') or 
-        new_text != selected_question.get('question_text', '') or 
-        new_type != selected_question.get('type', 'multiple_choice') or
+        st.session_state.get(f"title_{question_idx}", selected_question.get('title', '')) != selected_question.get('title', '') or
+        st.session_state.get(f"text_{question_idx}", selected_question.get('question_text', '')) != selected_question.get('question_text', '') or
+        st.session_state.get(f"type_{question_idx}", selected_question.get('type', 'multiple_choice')) != selected_question.get('type', 'multiple_choice') or
         st.session_state.get(f"points_{question_idx}", selected_question.get('points', 1)) != selected_question.get('points', 1) or
         st.session_state.get(f"difficulty_{question_idx}", selected_question.get('difficulty', 'Medium')) != selected_question.get('difficulty', 'Medium')
     )
-    
+
     if has_changes:
         st.warning("⚠️ You have unsaved changes - click Save to permanently store them")
     else:
         st.success("✅ All changes saved")
-    
-    # Save and navigation buttons
+
+    # Save and navigation buttons (styled)
     save_col1, save_col2, save_col3 = st.columns(3)
-    
+    button_style = """
+        <style>
+        .stButton>button {
+            background-color: #1f77b4 !important;
+            color: #fff !important;
+            border-radius: 6px !important;
+            font-weight: 600 !important;
+            font-size: 1.05rem !important;
+            padding: 0.6rem 1.5rem !important;
+            border: none !important;
+            margin-bottom: 0.2rem !important;
+        }
+        .stButton>button:disabled {
+            background-color: #b0b8c1 !important;
+            color: #fff !important;
+        }
+        </style>
+    """
+    st.markdown(button_style, unsafe_allow_html=True)
+
     with save_col1:
         if st.button(f"💾 Save & Previous", key=f"save_prev_{question_idx}", disabled=question_idx == 0):
             save_question_from_widgets(selected_question, question_idx)
             st.session_state.current_question_idx = max(0, question_idx - 1)
             st.rerun()
-    
+
     with save_col2:
-        if st.button(f"💾 Save Question", key=f"save_{question_idx}", type="primary"):
+        if st.button(f"💾 Save Question", key=f"save_{question_idx}"):
             if save_question_from_widgets(selected_question, question_idx):
                 st.success(f"✅ Question {question_idx + 1} saved successfully!")
                 st.balloons()
             st.rerun()
-    
+
     with save_col3:
         if st.button(f"💾 Save & Next", key=f"save_next_{question_idx}", disabled=question_idx == len(st.session_state.questions_data['questions']) - 1):
             save_question_from_widgets(selected_question, question_idx)
             st.session_state.current_question_idx = min(len(st.session_state.questions_data['questions']) - 1, question_idx + 1)
             st.rerun()
-    
-    # Reset and discard buttons
+
+    # Reset and discard buttons (secondary style)
     reset_col1, reset_col2 = st.columns(2)
-    
+    secondary_button_style = """
+        <style>
+        .stButton>button.secondary {
+            background-color: #e0e3e8 !important;
+            color: #1f77b4 !important;
+            border-radius: 6px !important;
+            font-weight: 500 !important;
+            font-size: 1.02rem !important;
+            padding: 0.5rem 1.2rem !important;
+            border: none !important;
+        }
+        </style>
+    """
+    st.markdown(secondary_button_style, unsafe_allow_html=True)
+
     with reset_col1:
         if st.button(f"🔄 Reset to Saved", key=f"reset_{question_idx}"):
             reset_form_to_saved(selected_question, question_idx)
             st.rerun()
-    
+
     with reset_col2:
         if st.button(f"🗑️ Discard Changes", key=f"discard_{question_idx}"):
             discard_all_changes(selected_question, question_idx)
             st.rerun()
-    
-    # Debug section (can be removed later)
-    with st.expander("🔍 Debug: Widget State"):
-        debug_widget_state(question_idx)
-        
-        st.write("**Original Question Values:**")
-        st.write(f"Title: '{selected_question.get('title', '')}'")
-        st.write(f"Text: '{selected_question.get('question_text', '')[:50]}...'")
-        st.write(f"Type: '{selected_question.get('type', 'multiple_choice')}'")
-        st.write(f"Choices: {len(selected_question.get('choices', []))}")
+
+    st.markdown("</div>", unsafe_allow_html=True)
 
 def render_multiple_choice_editor(selected_question, question_idx):
     """Render multiple choice editor"""
@@ -1351,90 +1412,116 @@ def render_analysis_view(selected_question, question_idx, questions):
         st.write(f"**Average Points per Question:** {total_points / total_questions:.1f}")
 
 def render_workflow_completion():
-    """Render the workflow completion section"""
-    
-    st.subheader("🎯 Workflow Completion")
-    
-    # Check if we have questions to work with
+    """Professional dashboard for results, corrections, and export (Priority 2)"""
+
+    st.markdown(
+        """
+        <div style="margin-top:2rem;margin-bottom:1.5rem;">
+            <h3 style="color:#1f77b4;margin-bottom:0.5rem;">📊 Review Summary & Export</h3>
+            <hr style="border:1px solid #e0e0e0;margin:0.5rem 0 1.5rem 0;">
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
     questions_data = st.session_state.get('questions_data', {})
+    corrections_made = st.session_state.get('latex_corrections_made', 0)
+    math_results = st.session_state.get('math_validation_results', {})
     questions = questions_data.get('questions', [])
-    
-    if not questions:
-        st.warning("No questions available for completion")
-        return
-    
-    # Show summary
-    st.write(f"**Total Questions:** {len(questions)}")
-    
-    # Check question completeness
-    complete_questions = 0
-    for question in questions:
-        if (question.get('title') and 
-            question.get('question_text') and 
-            question.get('type') and
-            question.get('correct_answer')):
-            
-            # For multiple choice, also check choices
-            if question.get('type') == 'multiple_choice':
-                if question.get('choices') and len(question.get('choices', [])) > 0:
-                    complete_questions += 1
-            else:
-                complete_questions += 1
-    
-    st.write(f"**Complete Questions:** {complete_questions}/{len(questions)}")
-    
-    # Progress bar
-    completion_progress = complete_questions / len(questions) if questions else 0
-    st.progress(completion_progress)
-    
-    # Navigation buttons
+    total_questions = len(questions)
+
+    # --- Metrics Row ---
     col1, col2, col3 = st.columns(3)
-    
     with col1:
-        if st.button("← Back to Stage 2", key="back_to_stage2"):
-            st.session_state.current_stage = 1
-            st.rerun()
-    
+        st.metric(
+            label="Total Questions",
+            value=total_questions,
+            help="Number of questions processed in this session."
+        )
     with col2:
-        if st.button("🔄 Refresh Editor", key="refresh_editor"):
-            st.rerun()
-    
+        st.metric(
+            label="LaTeX Corrections",
+            value=corrections_made,
+            help="Number of LaTeX issues automatically corrected."
+        )
     with col3:
-        if complete_questions == len(questions):
-            if st.button("✅ Complete Stage 3", key="complete_stage3"):
-                st.session_state.current_stage = 3  # Move to Stage 4
-                st.success("Stage 3 completed! Moving to Stage 4...")
-                st.rerun()
+        math_valid = math_results.get('valid', 0)
+        math_invalid = math_results.get('invalid', 0)
+        st.metric(
+            label="Math Consistency",
+            value=f"{math_valid} ✅ / {math_invalid} ❌",
+            help="Questions passing/failing mathematical validation."
+        )
+
+    # --- LaTeX Correction Examples ---
+    if corrections_made > 0 and 'latex_examples' in st.session_state:
+        st.markdown(
+            """
+            <div style="margin-top:1.5rem;">
+                <h4 style="color:#764ba2;">LaTeX Correction Examples</h4>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        for ex in st.session_state['latex_examples'][:2]:
+            before = ex.get('before', '')
+            after = ex.get('after', '')
+            st.markdown(
+                f"""
+                <div style="background:#f8f9fa;border-radius:8px;padding:0.7rem 1rem;margin-bottom:0.5rem;">
+                    <b>Before:</b> <span style="color:#b22222;">{before}</span><br>
+                    <b>After:</b> <span style="color:#228B22;">{after}</span>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+    # --- Math Validation Results ---
+    if math_results:
+        st.markdown(
+            """
+            <div style="margin-top:1.5rem;">
+                <h4 style="color:#764ba2;">Mathematical Validation</h4>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        if math_invalid > 0:
+            st.error(f"{math_invalid} question(s) failed mathematical consistency checks.")
         else:
-            st.button("⏳ Complete All Questions", disabled=True, key="complete_disabled")
-            st.caption(f"Complete {len(questions) - complete_questions} more questions to proceed")
-    
-    # Export options
-    st.subheader("📤 Export Options")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        if st.button("📁 Export JSON", key="export_json"):
-            # Create download button for JSON
-            json_str = json.dumps(questions_data, indent=2, ensure_ascii=False)
+            st.success("All questions passed mathematical validation.")
+
+    # --- Professional Download Interface ---
+    st.markdown(
+        """
+        <div style="margin-top:2rem;">
+            <h4 style="color:#1f77b4;">Download & Export</h4>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    export_col1, export_col2 = st.columns([2, 1])
+    with export_col1:
+        st.markdown(
+            """
+            <div style="background:#f1f3f6;border-radius:8px;padding:1rem 1.5rem;">
+                <b>Ready to export your validated questions?</b><br>
+                Download the JSON file for LMS import or further review.
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    with export_col2:
+        if questions_data:
             st.download_button(
-                label="Download JSON File",
-                data=json_str,
-                file_name="edited_questions.json",
-                mime="application/json"
+                label="⬇️ Download Validated JSON",
+                data=json.dumps(questions_data, indent=2),
+                file_name="q2json_validated_questions.json",
+                mime="application/json",
+                use_container_width=True
             )
-    
-    with col2:
-        if st.button("📊 Export Summary", key="export_summary"):
-            # Create summary report
-            summary = create_question_summary(questions)
-            st.download_button(
-                label="Download Summary Report",
-                data=summary,
-                file_name="question_summary.txt",
-                mime="text/plain"
-            )
+        else:
+            st.warning("No validated data to export.")
 
 def create_question_summary(questions):
     """Create a text summary of all questions"""
@@ -1466,4 +1553,51 @@ def create_question_summary(questions):
         summary_lines.append("")
     
     return "\n".join(summary_lines)
+
+def render_main_content_navigation():
+    """Professional, consistent navigation controls at the bottom of main content (Priority 3, FIXED)"""
+    current_stage = st.session_state.get("current_stage", 3)
+    total_stages = 4
+    can_go_back = current_stage > 0
+    can_go_next = current_stage < total_stages - 1
+    can_complete = current_stage == total_stages - 1
+
+    # Check if prerequisites are met (validated questions)
+    prerequisites_met = has_validated_questions()
+
+    st.markdown(
+        f"""
+        <div style="
+            margin-top:2.5rem;
+            margin-bottom:1.5rem;
+            padding:1.2rem 1.5rem 1.2rem 1.5rem;
+            border-radius: 12px;
+            background: linear-gradient(90deg, #1f77b4 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(30, 60, 120, 0.08);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        ">
+            <div style="font-size:1.2rem;font-weight:600;letter-spacing:0.5px;margin-bottom:0.7rem;">
+                Stage {current_stage + 1} of {total_stages}
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    nav_col1, nav_col2, nav_col3 = st.columns([1, 1, 1])
+    with nav_col1:
+        if st.button("⬅️ Back", key="main_nav_back_btn", disabled=not can_go_back):
+            st.session_state.current_stage = max(0, current_stage - 1)
+            st.rerun()
+    with nav_col2:
+        if st.button("Next ➡️", key="main_nav_next_btn", disabled=not (can_go_next and prerequisites_met)):
+            st.session_state.current_stage = min(total_stages - 1, current_stage + 1)
+            st.rerun()
+    with nav_col3:
+        if st.button("Finish", key="main_nav_complete_btn", disabled=not (can_complete and prerequisites_met)):
+            st.success("🎉 Workflow complete! You may now export your data.")
+            # Optionally, trigger export or summary actions here
 

@@ -1,0 +1,66 @@
+# stages/stage_3_human_review.py
+import streamlit as st
+from navigation.manager import NavigationManager
+from .stage_3_components.editor_interface import EditorInterface  # Fixed import path
+from .stage_3_components.export_handlers import ExportHandlers    # Fixed import path
+
+def render_human_review():
+    """Render the complete Human Review & Editing stage"""
+    
+    # Progress indicator
+    progress = (st.session_state.current_stage + 1) / 4
+    st.progress(progress)
+    st.markdown(f"**Stage {st.session_state.current_stage + 1} of 4**: Human Review & Editing")
+
+    st.header("👥 Human Review & Editing")
+    
+    # Check if we have validated questions from Stage 2
+    if not has_validated_questions():
+        render_no_questions_warning()
+        return
+    
+    # Initialize and render the editor interface
+    try:
+        editor = EditorInterface()
+        editor.render()
+        
+        # Render workflow completion
+        export_handlers = ExportHandlers()
+        export_handlers.render_workflow_completion()
+        
+    except Exception as e:
+        st.error(f"Error loading editor components: {e}")
+        st.info("Using fallback editor...")
+        render_fallback_editor()
+
+def has_validated_questions():
+    """Check if we have validated questions from Stage 2"""
+    return ('questions_data' in st.session_state and 
+            st.session_state.questions_data and
+            'questions' in st.session_state.questions_data)
+
+def render_no_questions_warning():
+    """Render warning when no validated questions are available"""
+    st.warning("⚠️ No validated questions available. Please complete previous stages first.")
+    st.markdown("""
+    **To get started with Human Review:**
+    1. Complete **Stage 1: Prompt Builder** to create your AI prompt
+    2. Complete **Stage 2: AI Processing** to upload and process the AI response
+    3. Complete **Stage 3: JSON Validation** to validate the questions
+    4. Return here for human review and editing
+    """)
+
+def render_fallback_editor():
+    """Render a simple fallback editor if components fail"""
+    st.info("🔧 Using simple fallback editor")
+    
+    questions_data = st.session_state.get('questions_data', {})
+    questions = questions_data.get('questions', [])
+    
+    if questions:
+        st.write(f"Found {len(questions)} questions")
+        for i, question in enumerate(questions):
+            with st.expander(f"Question {i+1}: {question.get('title', 'Untitled')}"):
+                st.json(question)
+    else:
+        st.warning("No questions found")

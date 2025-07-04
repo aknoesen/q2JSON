@@ -50,5 +50,30 @@ def main():
         st.rerun()
 
 
+def create_main_header():
+    st.markdown(
+        """
+        <div style="
+            background: linear-gradient(90deg, #1f77b4 0%, #764ba2 100%);
+            padding: 1.5rem 1rem 1rem 1rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            color: white;
+            box-shadow: 0 2px 8px rgba(30, 60, 120, 0.08);
+            display: flex;
+            align-items: center;
+        ">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/1/1b/Univ_logo.png" alt="Institution Logo" style="height:48px;margin-right:1.5rem;">
+            <div>
+                <div style="font-size:2rem;font-weight:700;letter-spacing:1px;">Q2JSON Generator</div>
+                <div style="font-size:1.1rem;font-weight:400;margin-top:0.2rem;">AI-to-LMS Educational Question Pipeline</div>
+                <div style="font-size:0.95rem;font-weight:300;margin-top:0.2rem;">Institutional Edition &mdash; <span style="font-weight:500;">Faculty Use Only</span></div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 if __name__ == "__main__":
     main()
