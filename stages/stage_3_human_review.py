@@ -269,13 +269,59 @@ def render_teacher_view(selected_question, question_idx, questions):
                 st.session_state.current_question_idx = min(len(questions) - 1, question_idx + 1)
                 st.rerun()
         
-        # **Show live preview with current edits**
-        # Get the current edit state or fall back to saved version
-        if f'edit_question_{question_idx}' in st.session_state:
-            preview_question = st.session_state[f'edit_question_{question_idx}']
+        # **Use widget values directly for live preview**
+        # Get current values from the widgets using their keys
+        preview_title = st.session_state.get(f"title_{question_idx}", selected_question.get('title', ''))
+        preview_text = st.session_state.get(f"text_{question_idx}", selected_question.get('question_text', ''))
+        preview_type = st.session_state.get(f"type_{question_idx}", selected_question.get('type', 'multiple_choice'))
+        preview_points = st.session_state.get(f"points_{question_idx}", selected_question.get('points', 1))
+        preview_difficulty = st.session_state.get(f"difficulty_{question_idx}", selected_question.get('difficulty', 'Medium'))
+        
+        # Build preview question from current widget values
+        preview_question = {
+            'title': preview_title,
+            'question_text': preview_text,
+            'type': preview_type,
+            'points': preview_points,
+            'difficulty': preview_difficulty,
+            'correct_answer': selected_question.get('correct_answer', ''),
+            'choices': selected_question.get('choices', []),
+            'tolerance': selected_question.get('tolerance', 0.05),
+            'feedback_correct': st.session_state.get(f"feedback_correct_{question_idx}", selected_question.get('feedback_correct', '')),
+            'feedback_incorrect': st.session_state.get(f"feedback_incorrect_{question_idx}", selected_question.get('feedback_incorrect', ''))
+        }
+        
+        # Update choices for multiple choice
+        if preview_type == 'multiple_choice':
+            preview_choices = []
+            for i in range(10):  # Check up to 10 choices
+                choice_key = f"choice_{question_idx}_{i}"
+                if choice_key in st.session_state and st.session_state[choice_key].strip():
+                    preview_choices.append(st.session_state[choice_key].strip())
+            
+            if preview_choices:
+                preview_question['choices'] = preview_choices
+                preview_question['correct_answer'] = st.session_state.get(f"correct_{question_idx}", preview_choices[0] if preview_choices else '')
+        
+        # Update correct answer based on type
+        if preview_type == 'numerical':
+            preview_question['correct_answer'] = str(st.session_state.get(f"correct_num_{question_idx}", 0.0))
+            preview_question['tolerance'] = st.session_state.get(f"tolerance_{question_idx}", 0.05)
+        elif preview_type == 'true_false':
+            preview_question['correct_answer'] = st.session_state.get(f"correct_tf_{question_idx}", 'True')
+        elif preview_type == 'short_answer':
+            preview_question['correct_answer'] = st.session_state.get(f"correct_text_{question_idx}", '')
+        
+        # Show status
+        has_changes = (preview_title != selected_question.get('title', '') or 
+                      preview_text != selected_question.get('question_text', '') or 
+                      preview_type != selected_question.get('type', 'multiple_choice') or
+                      preview_points != selected_question.get('points', 1) or
+                      preview_difficulty != selected_question.get('difficulty', 'Medium'))
+        
+        if has_changes:
             st.success("📝 Live Preview - showing current edits")
         else:
-            preview_question = selected_question
             st.info("💾 Saved Version - no current edits")
         
         # Display question with current edits
@@ -325,11 +371,10 @@ def render_teacher_view(selected_question, question_idx, questions):
                 st.error(f"❌ Incorrect: {preview_question.get('feedback_incorrect')}")
         
         # Show modification status
-        if f'edit_question_{question_idx}' in st.session_state:
-            if st.session_state[f'edit_question_{question_idx}'] != selected_question:
-                st.warning("⚠️ You have unsaved changes")
-            else:
-                st.success("✅ All changes saved")
+        if has_changes:
+            st.warning("⚠️ You have unsaved changes")
+        else:
+            st.success("✅ All changes saved")
         
         if question_idx in st.session_state.get('modified_questions', set()):
             st.success("✅ Question has been modified and saved")
@@ -342,98 +387,90 @@ def render_teacher_view(selected_question, question_idx, questions):
         render_question_editor(selected_question, question_idx)
 
 def render_question_editor(selected_question, question_idx):
-    """Render the question editor with live preview updates"""
+    """Render the question editor with proper form handling"""
     
     st.subheader(f"✏️ Edit Question {question_idx + 1}")
     
-    # Create a copy of the question for editing
-    if f'edit_question_{question_idx}' not in st.session_state:
-        st.session_state[f'edit_question_{question_idx}'] = copy.deepcopy(selected_question)
+    # Check if we just discarded/reset changes
+    just_discarded = st.session_state.get(f'discarded_{question_idx}', False)
+    just_reset = st.session_state.get(f'reset_{question_idx}', False)
     
-    edit_question = st.session_state[f'edit_question_{question_idx}']
+    if just_discarded:
+        st.success("✅ Changes discarded - form reset to original")
+        del st.session_state[f'discarded_{question_idx}']
     
-    # Question title - with live update
+    if just_reset:
+        st.success("✅ Form reset to saved version")
+        del st.session_state[f'reset_{question_idx}']
+    
+    # Question title - use value parameter for default, key for state
+    title_key = f"title_{question_idx}"
+    title_value = selected_question.get('title', '')
+    
     new_title = st.text_input(
         "Question Title",
-        value=edit_question.get('title', ''),
-        key=f"title_{question_idx}",
+        value=title_value,
+        key=title_key,
         help="Changes appear in preview immediately"
     )
-    # Update immediately for live preview
-    edit_question['title'] = new_title
     
-    # Question text - with live update
+    # Question text
+    text_key = f"text_{question_idx}"
+    text_value = selected_question.get('question_text', '')
+    
     new_text = st.text_area(
         "Question Text",
-        value=edit_question.get('question_text', ''),
+        value=text_value,
         height=100,
-        key=f"text_{question_idx}",
+        key=text_key,
         help="Changes appear in preview immediately"
     )
-    # Update immediately for live preview
-    edit_question['question_text'] = new_text
     
-    # Question type - with live update
-    current_type = edit_question.get('type', 'multiple_choice')
+    # Question type
+    type_key = f"type_{question_idx}"
+    current_type = selected_question.get('type', 'multiple_choice')
+    
+    try:
+        type_index = ["multiple_choice", "numerical", "true_false", "short_answer"].index(current_type)
+    except ValueError:
+        type_index = 0
+    
     new_type = st.selectbox(
         "Question Type",
         ["multiple_choice", "numerical", "true_false", "short_answer"],
-        index=["multiple_choice", "numerical", "true_false", "short_answer"].index(current_type),
-        key=f"type_{question_idx}",
+        index=type_index,
+        key=type_key,
         help="Changes appear in preview immediately"
     )
-    # Update immediately for live preview
-    edit_question['type'] = new_type
     
     # Type-specific editors
     if new_type == 'multiple_choice':
-        render_multiple_choice_editor(edit_question, question_idx)
+        render_multiple_choice_editor(selected_question, question_idx)
     elif new_type == 'numerical':
-        render_numerical_editor(edit_question, question_idx)
+        render_numerical_editor(selected_question, question_idx)
     elif new_type == 'true_false':
-        render_true_false_editor(edit_question, question_idx)
+        render_true_false_editor(selected_question, question_idx)
     else:
-        render_text_editor(edit_question, question_idx)
+        render_text_editor(selected_question, question_idx)
     
     # Common fields
-    render_common_fields(edit_question, question_idx)
+    render_common_fields(selected_question, question_idx)
     
     # Save and navigation section
     st.divider()
     st.subheader("💾 Save & Navigate")
     
-    # Check if there are unsaved changes
-    has_changes = edit_question != selected_question
+    # Check if there are unsaved changes by comparing widget values to saved values
+    has_changes = (
+        new_title != selected_question.get('title', '') or 
+        new_text != selected_question.get('question_text', '') or 
+        new_type != selected_question.get('type', 'multiple_choice') or
+        st.session_state.get(f"points_{question_idx}", selected_question.get('points', 1)) != selected_question.get('points', 1) or
+        st.session_state.get(f"difficulty_{question_idx}", selected_question.get('difficulty', 'Medium')) != selected_question.get('difficulty', 'Medium')
+    )
     
     if has_changes:
         st.warning("⚠️ You have unsaved changes - click Save to permanently store them")
-        
-        # Show what changed
-        with st.expander("📋 Show Changes"):
-            changes_found = False
-            
-            if edit_question.get('title') != selected_question.get('title'):
-                st.write(f"**Title changed:** '{selected_question.get('title', '')}' → '{edit_question.get('title', '')}'")
-                changes_found = True
-            
-            if edit_question.get('question_text') != selected_question.get('question_text'):
-                st.write(f"**Question text changed**")
-                changes_found = True
-            
-            if edit_question.get('type') != selected_question.get('type'):
-                st.write(f"**Type changed:** '{selected_question.get('type', '')}' → '{edit_question.get('type', '')}'")
-                changes_found = True
-            
-            if edit_question.get('choices') != selected_question.get('choices'):
-                st.write(f"**Choices changed:** {len(selected_question.get('choices', []))} → {len(edit_question.get('choices', []))} choices")
-                changes_found = True
-            
-            if edit_question.get('correct_answer') != selected_question.get('correct_answer'):
-                st.write(f"**Correct answer changed:** '{selected_question.get('correct_answer', '')}' → '{edit_question.get('correct_answer', '')}'")
-                changes_found = True
-            
-            if not changes_found:
-                st.write("No changes detected")
     else:
         st.success("✅ All changes saved")
     
@@ -442,20 +479,20 @@ def render_question_editor(selected_question, question_idx):
     
     with save_col1:
         if st.button(f"💾 Save & Previous", key=f"save_prev_{question_idx}", disabled=question_idx == 0):
-            save_question_changes(edit_question, question_idx)
+            save_question_from_widgets(selected_question, question_idx)
             st.session_state.current_question_idx = max(0, question_idx - 1)
             st.rerun()
     
     with save_col2:
         if st.button(f"💾 Save Question", key=f"save_{question_idx}", type="primary"):
-            if save_question_changes(edit_question, question_idx):
+            if save_question_from_widgets(selected_question, question_idx):
                 st.success(f"✅ Question {question_idx + 1} saved successfully!")
-                st.balloons()  # Visual feedback
+                st.balloons()
             st.rerun()
     
     with save_col3:
         if st.button(f"💾 Save & Next", key=f"save_next_{question_idx}", disabled=question_idx == len(st.session_state.questions_data['questions']) - 1):
-            save_question_changes(edit_question, question_idx)
+            save_question_from_widgets(selected_question, question_idx)
             st.session_state.current_question_idx = min(len(st.session_state.questions_data['questions']) - 1, question_idx + 1)
             st.rerun()
     
@@ -464,62 +501,40 @@ def render_question_editor(selected_question, question_idx):
     
     with reset_col1:
         if st.button(f"🔄 Reset to Saved", key=f"reset_{question_idx}"):
-            # Reset to saved version
-            st.session_state[f'edit_question_{question_idx}'] = copy.deepcopy(selected_question)
-            st.success("Changes reset to saved version")
+            reset_form_to_saved(selected_question, question_idx)
             st.rerun()
     
     with reset_col2:
         if st.button(f"🗑️ Discard Changes", key=f"discard_{question_idx}"):
-            # Clear the edit state
-            if f'edit_question_{question_idx}' in st.session_state:
-                del st.session_state[f'edit_question_{question_idx}']
-            st.success("Changes discarded")
+            discard_all_changes(selected_question, question_idx)
             st.rerun()
     
-    # Auto-save option
-    st.divider()
-    auto_save = st.checkbox(
-        "🔄 Auto-save changes",
-        value=st.session_state.get('auto_save_enabled', False),
-        key=f"auto_save_{question_idx}",
-        help="Automatically save changes as you type"
-    )
-    
-    if auto_save:
-        st.session_state.auto_save_enabled = True
-        # Auto-save if there are changes
-        if has_changes:
-            save_question_changes(edit_question, question_idx)
-            st.caption("🔄 Auto-saved")
-    else:
-        st.session_state.auto_save_enabled = False
+    # Debug section (can be removed later)
+    with st.expander("🔍 Debug: Widget State"):
+        debug_widget_state(question_idx)
+        
+        st.write("**Original Question Values:**")
+        st.write(f"Title: '{selected_question.get('title', '')}'")
+        st.write(f"Text: '{selected_question.get('question_text', '')[:50]}...'")
+        st.write(f"Type: '{selected_question.get('type', 'multiple_choice')}'")
+        st.write(f"Choices: {len(selected_question.get('choices', []))}")
 
-def render_multiple_choice_editor(edit_question, question_idx):
-    """Render multiple choice editor with live preview updates"""
+def render_multiple_choice_editor(selected_question, question_idx):
+    """Render multiple choice editor"""
     
     st.subheader("📋 Answer Choices")
     
-    # Initialize choices if not present
-    if 'choices' not in edit_question:
-        edit_question['choices'] = []
-    
-    current_choices = edit_question.get('choices', [])
+    current_choices = selected_question.get('choices', [])
     
     # Show current choices count
-    st.write(f"**Current Choices ({len(current_choices)}):**")
-    
-    # Edit choices with live update
-    st.write("**Edit Choices:**")
-    new_choices = []
+    st.write(f"**Edit Choices:**")
     
     # Create choice input fields
     num_fields = max(4, len(current_choices))
+    new_choices = []
     
     for i in range(num_fields):
         choice_value = current_choices[i] if i < len(current_choices) else ""
-        
-        # Use a unique key that includes the question index
         choice_key = f"choice_{question_idx}_{i}"
         
         new_choice = st.text_input(
@@ -533,9 +548,6 @@ def render_multiple_choice_editor(edit_question, question_idx):
         if new_choice.strip():
             new_choices.append(new_choice.strip())
     
-    # Update choices immediately for live preview
-    edit_question['choices'] = new_choices
-    
     # Validation
     if new_choices:
         if len(new_choices) >= 2:
@@ -545,89 +557,210 @@ def render_multiple_choice_editor(edit_question, question_idx):
     else:
         st.error("❌ No choices defined")
     
-    # Correct answer selector with live update
+    # Correct answer selector
     if new_choices:
         st.subheader("✅ Correct Answer")
         
-        current_correct = edit_question.get('correct_answer', '')
+        current_correct = selected_question.get('correct_answer', '')
         correct_idx = 0
         
         if current_correct in new_choices:
             correct_idx = new_choices.index(current_correct)
         
-        new_correct = st.selectbox(
+        st.selectbox(
             "Select Correct Answer",
             new_choices,
             index=correct_idx,
             key=f"correct_{question_idx}",
             help="Changes appear in preview immediately"
         )
-        
-        # Update immediately for live preview
-        edit_question['correct_answer'] = new_correct
 
-def render_common_fields(edit_question, question_idx):
-    """Render common fields with live preview updates"""
+def render_numerical_editor(selected_question, question_idx):
+    """Render numerical question editor"""
+    
+    st.subheader("🔢 Numerical Answer")
+    
+    current_answer = selected_question.get('correct_answer', '')
+    try:
+        numeric_value = float(current_answer) if current_answer else 0.0
+    except (ValueError, TypeError):
+        numeric_value = 0.0
+    
+    st.number_input(
+        "Correct Answer",
+        value=numeric_value,
+        format="%.4f",
+        key=f"correct_num_{question_idx}",
+        help="Changes appear in preview immediately"
+    )
+    
+    st.number_input(
+        "Tolerance (±)",
+        value=selected_question.get('tolerance', 0.05),
+        min_value=0.0,
+        max_value=1.0,
+        format="%.4f",
+        key=f"tolerance_{question_idx}",
+        help="Changes appear in preview immediately"
+    )
+
+def render_true_false_editor(selected_question, question_idx):
+    """Render true/false question editor"""
+    
+    st.subheader("✅❌ True/False Answer")
+    
+    current_answer = selected_question.get('correct_answer', 'True')
+    st.selectbox(
+        "Correct Answer",
+        ["True", "False"],
+        index=0 if current_answer == 'True' else 1,
+        key=f"correct_tf_{question_idx}",
+        help="Changes appear in preview immediately"
+    )
+
+def render_text_editor(selected_question, question_idx):
+    """Render text answer editor"""
+    
+    st.subheader("📝 Text Answer")
+    
+    st.text_input(
+        "Correct Answer",
+        value=selected_question.get('correct_answer', ''),
+        key=f"correct_text_{question_idx}",
+        help="Changes appear in preview immediately"
+    )
+
+def render_common_fields(selected_question, question_idx):
+    """Render common fields"""
     
     st.subheader("📊 Additional Settings")
     
     col1, col2 = st.columns(2)
     
     with col1:
-        new_points = st.number_input(
+        st.number_input(
             "Points",
-            value=edit_question.get('points', 1),
+            value=selected_question.get('points', 1),
             min_value=0,
             max_value=10,
             key=f"points_{question_idx}",
             help="Changes appear in preview immediately"
         )
-        # Update immediately for live preview
-        edit_question['points'] = new_points
     
     with col2:
-        new_difficulty = st.selectbox(
+        current_difficulty = selected_question.get('difficulty', 'Medium')
+        try:
+            difficulty_index = ["Easy", "Medium", "Hard"].index(current_difficulty)
+        except ValueError:
+            difficulty_index = 1  # Default to Medium
+        
+        st.selectbox(
             "Difficulty",
             ["Easy", "Medium", "Hard"],
-            index=["Easy", "Medium", "Hard"].index(edit_question.get('difficulty', 'Medium')),
+            index=difficulty_index,
             key=f"difficulty_{question_idx}",
             help="Changes appear in preview immediately"
         )
-        # Update immediately for live preview
-        edit_question['difficulty'] = new_difficulty
     
-    # Feedback with live update
+    # Feedback
     with st.expander("📝 Feedback Settings"):
-        new_feedback_correct = st.text_area(
+        st.text_area(
             "Feedback for Correct Answer",
-            value=edit_question.get('feedback_correct', ''),
+            value=selected_question.get('feedback_correct', ''),
             height=75,
             key=f"feedback_correct_{question_idx}",
             help="Changes appear in preview immediately"
         )
         
-        new_feedback_incorrect = st.text_area(
+        st.text_area(
             "Feedback for Incorrect Answer",
-            value=edit_question.get('feedback_incorrect', ''),
+            value=selected_question.get('feedback_incorrect', ''),
             height=75,
             key=f"feedback_incorrect_{question_idx}",
             help="Changes appear in preview immediately"
         )
-        
-        # Update immediately for live preview
-        edit_question['feedback_correct'] = new_feedback_correct
-        edit_question['feedback_incorrect'] = new_feedback_incorrect
 
-def save_question_changes(edit_question, question_idx):
-    """Save changes to the question in session state"""
+def debug_widget_state(question_idx):
+    """Debug function to show current widget state"""
+    
+    st.write("**Current Widget State:**")
+    
+    # Check title
+    title_key = f"title_{question_idx}"
+    if title_key in st.session_state:
+        st.write(f"Title: '{st.session_state[title_key]}'")
+    else:
+        st.write("Title: Not set in session state")
+    
+    # Check text
+    text_key = f"text_{question_idx}"
+    if text_key in st.session_state:
+        st.write(f"Text: '{st.session_state[text_key][:50]}...'")
+    else:
+        st.write("Text: Not set in session state")
+    
+    # Check type
+    type_key = f"type_{question_idx}"
+    if type_key in st.session_state:
+        st.write(f"Type: '{st.session_state[type_key]}'")
+    else:
+        st.write("Type: Not set in session state")
+    
+    # Check choices
+    choices_found = []
+    for i in range(10):
+        choice_key = f"choice_{question_idx}_{i}"
+        if choice_key in st.session_state and st.session_state[choice_key]:
+            choices_found.append(st.session_state[choice_key])
+    
+    if choices_found:
+        st.write(f"Choices: {len(choices_found)} found")
+        for i, choice in enumerate(choices_found):
+            st.write(f"  {i+1}. {choice}")
+    else:
+        st.write("Choices: None found in session state")
+
+def save_question_from_widgets(selected_question, question_idx):
+    """Save question using current widget values"""
     
     try:
-        # Update the main questions data
-        st.session_state.questions_data['questions'][question_idx] = copy.deepcopy(edit_question)
+        # Build question from current widget values
+        updated_question = {
+            'title': st.session_state.get(f"title_{question_idx}", selected_question.get('title', '')),
+            'question_text': st.session_state.get(f"text_{question_idx}", selected_question.get('question_text', '')),
+            'type': st.session_state.get(f"type_{question_idx}", selected_question.get('type', 'multiple_choice')),
+            'points': st.session_state.get(f"points_{question_idx}", selected_question.get('points', 1)),
+            'difficulty': st.session_state.get(f"difficulty_{question_idx}", selected_question.get('difficulty', 'Medium')),
+            'feedback_correct': st.session_state.get(f"feedback_correct_{question_idx}", selected_question.get('feedback_correct', '')),
+            'feedback_incorrect': st.session_state.get(f"feedback_incorrect_{question_idx}", selected_question.get('feedback_incorrect', ''))
+        }
         
-        # Clear the edit state since changes are saved
-        if f'edit_question_{question_idx}' in st.session_state:
-            del st.session_state[f'edit_question_{question_idx}']
+        # Handle type-specific fields
+        question_type = updated_question['type']
+        
+        if question_type == 'multiple_choice':
+            # Collect choices
+            choices = []
+            for i in range(10):  # Check up to 10 choices
+                choice_key = f"choice_{question_idx}_{i}"
+                if choice_key in st.session_state and st.session_state[choice_key].strip():
+                    choices.append(st.session_state[choice_key].strip())
+            
+            updated_question['choices'] = choices
+            updated_question['correct_answer'] = st.session_state.get(f"correct_{question_idx}", choices[0] if choices else '')
+        
+        elif question_type == 'numerical':
+            updated_question['correct_answer'] = str(st.session_state.get(f"correct_num_{question_idx}", 0.0))
+            updated_question['tolerance'] = st.session_state.get(f"tolerance_{question_idx}", 0.05)
+        
+        elif question_type == 'true_false':
+            updated_question['correct_answer'] = st.session_state.get(f"correct_tf_{question_idx}", 'True')
+        
+        elif question_type == 'short_answer':
+            updated_question['correct_answer'] = st.session_state.get(f"correct_text_{question_idx}", '')
+        
+        # Update the main questions data
+        st.session_state.questions_data['questions'][question_idx] = updated_question
         
         # Mark as modified
         if 'modified_questions' not in st.session_state:
@@ -644,18 +777,122 @@ def save_question_changes(edit_question, question_idx):
         st.error(f"Error saving question: {e}")
         return False
 
-def render_numerical_editor(edit_question, question_idx):
-    """Render numerical question editor with live preview updates"""
+def discard_all_changes(selected_question, question_idx):
+    """Discard all changes and reset form to original saved values"""
+    
+    # Instead of trying to modify widget session state directly,
+    # we'll delete the keys and let the widgets reinitialize with their default values
+    
+    # List of all possible widget keys to clear
+    keys_to_clear = [
+        f"title_{question_idx}",
+        f"text_{question_idx}",
+        f"type_{question_idx}",
+        f"points_{question_idx}",
+        f"difficulty_{question_idx}",
+        f"feedback_correct_{question_idx}",
+        f"feedback_incorrect_{question_idx}",
+        f"correct_{question_idx}",
+        f"correct_num_{question_idx}",
+        f"correct_tf_{question_idx}",
+        f"correct_text_{question_idx}",
+        f"tolerance_{question_idx}"
+    ]
+    
+    # Add choice keys
+    for i in range(10):
+        keys_to_clear.append(f"choice_{question_idx}_{i}")
+    
+    # Remove keys from session state to force widget reset
+    for key in keys_to_clear:
+        if key in st.session_state:
+            del st.session_state[key]
+    
+    # Clear any edit question state
+    edit_key = f'edit_question_{question_idx}'
+    if edit_key in st.session_state:
+        del st.session_state[edit_key]
+    
+    # Set a flag to indicate we just discarded changes
+    st.session_state[f'discarded_{question_idx}'] = True
+
+def reset_form_to_saved(selected_question, question_idx):
+    """Reset form widgets to saved values"""
+    
+    # Same approach as discard - clear keys and let widgets reinitialize
+    discard_all_changes(selected_question, question_idx)
+    
+    # Set a flag to indicate we just reset
+    st.session_state[f'reset_{question_idx}'] = True
+
+def render_multiple_choice_editor(selected_question, question_idx):
+    """Render multiple choice editor"""
+    
+    st.subheader("📋 Answer Choices")
+    
+    current_choices = selected_question.get('choices', [])
+    
+    # Show current choices count
+    st.write(f"**Edit Choices:**")
+    
+    # Create choice input fields
+    num_fields = max(4, len(current_choices))
+    new_choices = []
+    
+    for i in range(num_fields):
+        choice_value = current_choices[i] if i < len(current_choices) else ""
+        choice_key = f"choice_{question_idx}_{i}"
+        
+        new_choice = st.text_input(
+            f"Choice {i+1}",
+            value=choice_value,
+            key=choice_key,
+            placeholder=f"Enter choice {i+1}...",
+            help="Changes appear in preview immediately"
+        )
+        
+        if new_choice.strip():
+            new_choices.append(new_choice.strip())
+    
+    # Validation
+    if new_choices:
+        if len(new_choices) >= 2:
+            st.success(f"✅ {len(new_choices)} choices defined")
+        else:
+            st.warning(f"⚠️ Multiple choice questions should have at least 2 choices")
+    else:
+        st.error("❌ No choices defined")
+    
+    # Correct answer selector
+    if new_choices:
+        st.subheader("✅ Correct Answer")
+        
+        current_correct = selected_question.get('correct_answer', '')
+        correct_idx = 0
+        
+        if current_correct in new_choices:
+            correct_idx = new_choices.index(current_correct)
+        
+        st.selectbox(
+            "Select Correct Answer",
+            new_choices,
+            index=correct_idx,
+            key=f"correct_{question_idx}",
+            help="Changes appear in preview immediately"
+        )
+
+def render_numerical_editor(selected_question, question_idx):
+    """Render numerical question editor"""
     
     st.subheader("🔢 Numerical Answer")
     
-    current_answer = edit_question.get('correct_answer', '')
+    current_answer = selected_question.get('correct_answer', '')
     try:
         numeric_value = float(current_answer) if current_answer else 0.0
     except (ValueError, TypeError):
         numeric_value = 0.0
     
-    new_correct = st.number_input(
+    st.number_input(
         "Correct Answer",
         value=numeric_value,
         format="%.4f",
@@ -663,51 +900,131 @@ def render_numerical_editor(edit_question, question_idx):
         help="Changes appear in preview immediately"
     )
     
-    new_tolerance = st.number_input(
+    st.number_input(
         "Tolerance (±)",
-        value=edit_question.get('tolerance', 0.05),
+        value=selected_question.get('tolerance', 0.05),
         min_value=0.0,
         max_value=1.0,
         format="%.4f",
         key=f"tolerance_{question_idx}",
         help="Changes appear in preview immediately"
     )
-    
-    # Update immediately for live preview
-    edit_question['correct_answer'] = str(new_correct)
-    edit_question['tolerance'] = new_tolerance
 
-def render_true_false_editor(edit_question, question_idx):
-    """Render true/false question editor with live preview updates"""
+def render_true_false_editor(selected_question, question_idx):
+    """Render true/false question editor"""
     
     st.subheader("✅❌ True/False Answer")
     
-    current_answer = edit_question.get('correct_answer', 'True')
-    new_correct = st.selectbox(
+    current_answer = selected_question.get('correct_answer', 'True')
+    st.selectbox(
         "Correct Answer",
         ["True", "False"],
         index=0 if current_answer == 'True' else 1,
         key=f"correct_tf_{question_idx}",
         help="Changes appear in preview immediately"
     )
-    
-    # Update immediately for live preview
-    edit_question['correct_answer'] = new_correct
 
-def render_text_editor(edit_question, question_idx):
-    """Render text answer editor with live preview updates"""
+def render_text_editor(selected_question, question_idx):
+    """Render text answer editor"""
     
     st.subheader("📝 Text Answer")
     
-    new_correct = st.text_input(
+    st.text_input(
         "Correct Answer",
-        value=edit_question.get('correct_answer', ''),
+        value=selected_question.get('correct_answer', ''),
         key=f"correct_text_{question_idx}",
         help="Changes appear in preview immediately"
     )
+
+def render_common_fields(selected_question, question_idx):
+    """Render common fields"""
     
-    # Update immediately for live preview
-    edit_question['correct_answer'] = new_correct
+    st.subheader("📊 Additional Settings")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.number_input(
+            "Points",
+            value=selected_question.get('points', 1),
+            min_value=0,
+            max_value=10,
+            key=f"points_{question_idx}",
+            help="Changes appear in preview immediately"
+        )
+    
+    with col2:
+        current_difficulty = selected_question.get('difficulty', 'Medium')
+        try:
+            difficulty_index = ["Easy", "Medium", "Hard"].index(current_difficulty)
+        except ValueError:
+            difficulty_index = 1  # Default to Medium
+        
+        st.selectbox(
+            "Difficulty",
+            ["Easy", "Medium", "Hard"],
+            index=difficulty_index,
+            key=f"difficulty_{question_idx}",
+            help="Changes appear in preview immediately"
+        )
+    
+    # Feedback
+    with st.expander("📝 Feedback Settings"):
+        st.text_area(
+            "Feedback for Correct Answer",
+            value=selected_question.get('feedback_correct', ''),
+            height=75,
+            key=f"feedback_correct_{question_idx}",
+            help="Changes appear in preview immediately"
+        )
+        
+        st.text_area(
+            "Feedback for Incorrect Answer",
+            value=selected_question.get('feedback_incorrect', ''),
+            height=75,
+            key=f"feedback_incorrect_{question_idx}",
+            help="Changes appear in preview immediately"
+        )
+
+def debug_widget_state(question_idx):
+    """Debug function to show current widget state"""
+    
+    st.write("**Current Widget State:**")
+    
+    # Check title
+    title_key = f"title_{question_idx}"
+    if title_key in st.session_state:
+        st.write(f"Title: '{st.session_state[title_key]}'")
+    else:
+        st.write("Title: Not set in session state")
+    
+    # Check text
+    text_key = f"text_{question_idx}"
+    if text_key in st.session_state:
+        st.write(f"Text: '{st.session_state[text_key][:50]}...'")
+    else:
+        st.write("Text: Not set in session state")
+    
+    # Check type
+    type_key = f"type_{question_idx}"
+    if type_key in st.session_state:
+        st.write(f"Type: '{st.session_state[type_key]}'")
+    else:
+        st.write("Type: Not set in session state")
+    
+    # Check choices
+    choices_found = []
+    for i in range(10):
+        choice_key = f"choice_{question_idx}_{i}"
+        if choice_key in st.session_state and st.session_state[choice_key]:
+            choices_found.append(st.session_state[choice_key])
+    
+    if choices_found:
+        st.write(f"Choices: {len(choices_found)} found")
+        for i, choice in enumerate(choices_found):
+            st.write(f"  {i+1}. {choice}")
+    else:
+        st.write("Choices: None found in session state")
 
 def render_simple_fallback_editor(questions):
     """Simple fallback editor with two-panel layout"""
