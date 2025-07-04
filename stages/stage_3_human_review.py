@@ -4,6 +4,7 @@ import json
 import copy
 from navigation.manager import NavigationManager
 from modules.latex_corrector import LaTeXCorrector
+from utils.download_utils import render_download_button
 
 # Import Q2JSON Stage 4 components
 try:
@@ -1412,7 +1413,7 @@ def render_analysis_view(selected_question, question_idx, questions):
         st.write(f"**Average Points per Question:** {total_points / total_questions:.1f}")
 
 def render_workflow_completion():
-    """Professional dashboard for results, corrections, and export (Priority 2)"""
+    """Professional dashboard for results, corrections, and export (modularized)"""
 
     st.markdown(
         """
@@ -1429,67 +1430,21 @@ def render_workflow_completion():
     math_results = st.session_state.get('math_validation_results', {})
     questions = questions_data.get('questions', [])
     total_questions = len(questions)
+    latex_examples = st.session_state.get('latex_examples', [])
 
     # --- Metrics Row ---
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.metric(
-            label="Total Questions",
-            value=total_questions,
-            help="Number of questions processed in this session."
-        )
-    with col2:
-        st.metric(
-            label="LaTeX Corrections",
-            value=corrections_made,
-            help="Number of LaTeX issues automatically corrected."
-        )
-    with col3:
-        math_valid = math_results.get('valid', 0)
-        math_invalid = math_results.get('invalid', 0)
-        st.metric(
-            label="Math Consistency",
-            value=f"{math_valid} ✅ / {math_invalid} ❌",
-            help="Questions passing/failing mathematical validation."
-        )
+    math_valid = math_results.get('valid', 0)
+    math_invalid = math_results.get('invalid', 0)
+    from components.results.results_dashboard import render_results_metrics
+    render_results_metrics(total_questions, corrections_made, math_valid, math_invalid)
 
     # --- LaTeX Correction Examples ---
-    if corrections_made > 0 and 'latex_examples' in st.session_state:
-        st.markdown(
-            """
-            <div style="margin-top:1.5rem;">
-                <h4 style="color:#764ba2;">LaTeX Correction Examples</h4>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-        for ex in st.session_state['latex_examples'][:2]:
-            before = ex.get('before', '')
-            after = ex.get('after', '')
-            st.markdown(
-                f"""
-                <div style="background:#f8f9fa;border-radius:8px;padding:0.7rem 1rem;margin-bottom:0.5rem;">
-                    <b>Before:</b> <span style="color:#b22222;">{before}</span><br>
-                    <b>After:</b> <span style="color:#228B22;">{after}</span>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
+    from components.latex.latex_correction_display import render_latex_correction_examples
+    render_latex_correction_examples(corrections_made, latex_examples)
 
     # --- Math Validation Results ---
     if math_results:
-        st.markdown(
-            """
-            <div style="margin-top:1.5rem;">
-                <h4 style="color:#764ba2;">Mathematical Validation</h4>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-        if math_invalid > 0:
-            st.error(f"{math_invalid} question(s) failed mathematical consistency checks.")
-        else:
-            st.success("All questions passed mathematical validation.")
+        render_math_validation(math_results)
 
     # --- Professional Download Interface ---
     st.markdown(
@@ -1512,16 +1467,7 @@ def render_workflow_completion():
             unsafe_allow_html=True,
         )
     with export_col2:
-        if questions_data:
-            st.download_button(
-                label="⬇️ Download Validated JSON",
-                data=json.dumps(questions_data, indent=2),
-                file_name="q2json_validated_questions.json",
-                mime="application/json",
-                use_container_width=True
-            )
-        else:
-            st.warning("No validated data to export.")
+        render_download_button(questions_data)
 
 def create_question_summary(questions):
     """Create a text summary of all questions"""
