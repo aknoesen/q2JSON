@@ -11,6 +11,7 @@ from stages.stage_1_processing import render_ai_processing
 from stages.stage_2_validation import render_json_validation
 from stages.stage_3_human_review import render_human_review
 from utils.ui_helpers import load_css, create_sidebar, create_main_header
+from modules.latex_corrector import LaTeXCorrector
 
 def main():
     """Main application entry point - Clean and Simple!"""

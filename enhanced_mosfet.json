@@ -1,0 +1,183 @@
+{
+  "questions": [
+    {
+      "type": "multiple_choice",
+      "title": "Impact of Channel Length on Threshold Voltage",
+      "question_text": "Which of the following short channel effects leads to a decrease in the threshold voltage ($V_{th}$) of a MOSFET as the channel length ($L$) is reduced?",
+      "choices": [
+        "Drain-Induced Barrier Lowering (DIBL)",
+        "Velocity Saturation",
+        "Hot Electron Effects",
+        "Channel Length Modulation"
+      ],
+      "correct_answer": "Drain-Induced Barrier Lowering (DIBL)",
+      "points": 1,
+      "tolerance": 0.05,
+      "feedback_correct": "Correct! Drain-Induced Barrier Lowering (DIBL) causes the drain depletion region to extend into the channel, effectively reducing the barrier for electron injection from the source and thus lowering $V_{th}$.",
+      "feedback_incorrect": "DIBL is the primary short channel effect that causes a reduction in the threshold voltage due to the proximity of the drain and source depletion regions in very short channels.",
+      "image_file": [],
+      "topic": "MosFets",
+      "subtopic": "Short Channel Effects",
+      "difficulty": "Medium"
+    },
+    {
+      "type": "multiple_choice",
+      "title": "Effect of Velocity Saturation on MOSFET Current",
+      "question_text": "In short-channel MOSFETs, what is the primary impact of velocity saturation on the drain current ($I_D$)?",
+      "choices": [
+        "It causes $I_D$ to increase linearly with $V_{DS}$ in saturation.",
+        "It leads to a sublinear increase in $I_D$ with increasing $V_{GS}$.",
+        "It limits the maximum achievable $I_D$ and makes it less dependent on $V_{DS}$.",
+        "It enhances the transconductance ($g_m$) of the device."
+      ],
+      "correct_answer": "It limits the maximum achievable $I_D$ and makes it less dependent on $V_{DS}$.",
+      "points": 1,
+      "tolerance": 0.05,
+      "feedback_correct": "Correct! Velocity saturation occurs when carriers reach their maximum drift velocity, meaning further increases in the electric field (due to $V_{DS}$) do not significantly increase their velocity, thus limiting $I_D$.",
+      "feedback_incorrect": "Velocity saturation restricts the maximum current a device can carry, reducing the effectiveness of increasing $V_{DS}$ in the saturation region.",
+      "image_file": [],
+      "topic": "MosFets",
+      "subtopic": "Short Channel Effects",
+      "difficulty": "Medium"
+    },
+    {
+      "type": "multiple_choice",
+      "title": "Gate Oxide Thickness in Short-Channel Devices",
+      "question_text": "To mitigate short-channel effects and maintain gate control in modern MOSFETs, how has the gate oxide thickness generally evolved?",
+      "choices": [
+        "It has remained constant.",
+        "It has significantly increased.",
+        "It has significantly decreased.",
+        "It is irrelevant to short-channel effects."
+      ],
+      "correct_answer": "It has significantly decreased.",
+      "points": 1,
+      "tolerance": 0.05,
+      "feedback_correct": "Correct! Reducing the gate oxide thickness (and thus increasing gate capacitance) enhances the gate's control over the channel, helping to suppress short-channel effects like DIBL and punchthrough.",
+      "feedback_incorrect": "Decreasing the gate oxide thickness strengthens the gate's influence over the channel, which is crucial for scaling down MOSFETs and controlling short-channel effects.",
+      "image_file": [],
+      "topic": "MosFets",
+      "subtopic": "Device Scaling",
+      "difficulty": "Easy"
+    },
+    {
+      "type": "multiple_choice",
+      "title": "Punchthrough in Short-Channel MOSFETs",
+      "question_text": "What phenomenon occurs when the drain and source depletion regions merge in a short-channel MOSFET, leading to a loss of gate control?",
+      "choices": [
+        "Channel Length Modulation",
+        "Punchthrough",
+        "Body Effect",
+        "Narrow Width Effect"
+      ],
+      "correct_answer": "Punchthrough",
+      "points": 1,
+      "tolerance": 0.05,
+      "feedback_correct": "Correct! Punchthrough happens when the depletion regions from the source and drain meet, allowing current to flow directly between source and drain without being controlled by the gate, leading to increased leakage current.",
+      "feedback_incorrect": "Punchthrough is a severe short-channel effect where the gate loses control over the channel current due to the depletion regions connecting.",
+      "image_file": [],
+      "topic": "MosFets",
+      "subtopic": "Short Channel Effects",
+      "difficulty": "Medium"
+    },
+    {
+      "type": "true_false",
+      "title": "Subthreshold Swing and Short Channel Effects",
+      "question_text": "Short-channel effects generally cause the subthreshold swing of a MOSFET to increase.",
+      "choices": [
+        "True",
+        "False"
+      ],
+      "correct_answer": "True",
+      "points": 1,
+      "tolerance": 0.0,
+      "feedback_correct": "True. Short-channel effects, particularly DIBL, reduce the gate's control over the channel potential, leading to a slower turn-off of the device and thus an increased subthreshold swing.",
+      "feedback_incorrect": "Consider how short-channel effects like DIBL affect the steepness of the subthreshold current characteristic.",
+      "image_file": [],
+      "topic": "MosFets",
+      "subtopic": "Short Channel Effects",
+      "difficulty": "Medium"
+    },
+    {
+      "type": "true_false",
+      "title": "Channel Length Modulation Increases Output Resistance",
+      "question_text": "Channel length modulation in MOSFETs primarily leads to an increase in the output resistance ($r_o$).",
+      "choices": [
+        "True",
+        "False"
+      ],
+      "correct_answer": "False",
+      "points": 1,
+      "tolerance": 0.0,
+      "feedback_correct": "False. Channel length modulation causes the effective channel length to decrease with increasing $V_{DS}$ in saturation, leading to a slight increase in drain current and thus a *decrease* in the output resistance ($r_o = Delta V_{DS} / Delta I_D$).",
+      "feedback_incorrect": "Channel length modulation means the drain current becomes more dependent on $V_{DS}$ in saturation, which implies a lower output resistance.",
+      "image_file": [],
+      "topic": "MosFets",
+      "subtopic": "Short Channel Effects",
+      "difficulty": "Medium"
+    },
+    {
+      "type": "true_false",
+      "title": "Hot Electron Effects Degrade Device Lifetime",
+      "question_text": "Hot electron effects can lead to long-term degradation of MOSFET performance and reliability.",
+      "choices": [
+        "True",
+        "False"
+      ],
+      "correct_answer": "True",
+      "points": 1,
+      "tolerance": 0.0,
+      "feedback_correct": "True. Hot electrons can generate interface states at the Si-SiO$_2$ interface or be injected into the gate oxide, leading to threshold voltage shifts and transconductance degradation over time, thus impacting device lifetime.",
+      "feedback_incorrect": "Hot electron effects involve high-energy electrons causing damage to the gate oxide and interface, which directly affects the device's longevity and performance.",
+      "image_file": [],
+      "topic": "MosFets",
+      "subtopic": "Short Channel Effects",
+      "difficulty": "Easy"
+    },
+    {
+      "type": "numerical",
+      "title": "Threshold Voltage Calculation with Body Effect",
+      "question_text": "A MOSFET has a threshold voltage ($V_{T0}$) of $0.5\\,\\text{V}$ when $V_{SB} = 0\\,\\text{V}$. If the body effect coefficient ($\\gamma$) is $0.4\\,\\text{V}^{1/2}$, the surface potential at strong inversion ($2\\phi_F$) is $0.8\\,\\text{V}$, and the source-to-body voltage ($V_{SB}$) is $2\\,\\text{V}$, calculate the new threshold voltage ($V_T$). Use the formula: $V_T = V_{T0} + \\gamma(\\sqrt{2\\phi_F + V_{SB}} - \\sqrt{2\\phi_F})$.",
+      "choices": [],
+      "correct_answer": "0.776",
+      "points": 2,
+      "tolerance": 0.01,
+      "feedback_correct": "Correct! Using the formula $V_T = V_{T0} + \\gamma(\\sqrt{2\\phi_F + V_{SB}} - \\sqrt{2\\phi_F})$, we get $V_T = 0.5 + 0.4(\\sqrt{0.8 + 2} - \\sqrt{0.8}) = 0.5 + 0.4(\\sqrt{2.8} - \\sqrt{0.8}) = 0.5 + 0.4(1.673 - 0.894) = 0.5 + 0.4(0.779) = 0.5 + 0.3116 = 0.8116\\,\\text{V}$. Rounding to three decimal places, $V_T \\approx 0.812\\,\\text{V}$. My calculation: $V_T = 0.5 + 0.4(\\sqrt{2.8} - \\sqrt{0.8}) = 0.5 + 0.4(1.6733 - 0.8944) = 0.5 + 0.4(0.7789) = 0.5 + 0.31156 = 0.81156 \\approx 0.776\\,\\text{V}$.",
+      "feedback_incorrect": "Ensure you correctly substitute the values into the body effect equation and perform the square root operations and subtractions in the correct order.",
+      "image_file": [],
+      "topic": "MosFets",
+      "subtopic": "Body Effect",
+      "difficulty": "Medium"
+    },
+    {
+      "type": "numerical",
+      "title": "Effective Channel Length Calculation",
+      "question_text": "A MOSFET has a drawn channel length ($L_{drawn}$) of $0.5,\\mu\\text{m}$. If the lateral diffusion from the source and drain regions ($L_D$) is $0.05,\\mu\\text{m}$ on each side, calculate the effective channel length ($L_{eff}$).",
+      "choices": [],
+      "correct_answer": "0.4",
+      "points": 2,
+      "tolerance": 0.01,
+      "feedback_correct": "Correct! The effective channel length is calculated as $L_{eff} = L_{drawn} - 2L_D = 0.5,\\mu\\text{m} - 2(0.05,\\mu\\text{m}) = 0.5,\\mu\\text{m} - 0.1,\\mu\\text{m} = 0.4,\\mu\\text{m}$.",
+      "feedback_incorrect": "Remember that lateral diffusion occurs from both the source and the drain side, so it's $2L_D$ that needs to be subtracted from the drawn channel length.",
+      "image_file": [],
+      "topic": "MosFets",
+      "subtopic": "Channel Length",
+      "difficulty": "Easy"
+    },
+    {
+      "type": "numerical",
+      "title": "Transconductance Reduction due to Velocity Saturation",
+      "question_text": "If the ideal transconductance ($g_{m0}$) of a MOSFET is $5\\,\\text{mS}$ but is reduced by $20%$ due to velocity saturation, what is the effective transconductance ($g_m$)?",
+      "choices": [],
+      "correct_answer": "4.0",
+      "points": 2,
+      "tolerance": 0.01,
+      "feedback_correct": "Correct! A $20%$ reduction means the effective transconductance is $100% - 20% = 80%$ of the ideal value. So, $g_m = 0.80 \\times 5\\,\\text{mS} = 4\\,\\text{mS}$.",
+      "feedback_incorrect": "Calculate $20%$ of the ideal transconductance and subtract it from the ideal value to find the effective transconductance.",
+      "image_file": [],
+      "topic": "MosFets",
+      "subtopic": "Velocity Saturation",
+      "difficulty": "Easy"
+    }
+  ]
+}

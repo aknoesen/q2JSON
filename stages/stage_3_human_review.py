@@ -3,6 +3,7 @@ import streamlit as st
 import json
 import copy
 from navigation.manager import NavigationManager
+from modules.latex_corrector import LaTeXCorrector
 
 # Import Q2JSON Stage 4 components
 try:
@@ -42,6 +43,20 @@ def render_human_review():
     
     # Workflow completion
     render_workflow_completion()
+
+    # LaTeX correction integration (fixed)
+    questions_data = st.session_state.get('questions_data', None)
+    if questions_data:
+        corrector = LaTeXCorrector()
+        result = corrector.correct_latex_in_questions(questions_data)
+        questions_data = result['corrected_data']
+        corrections_made = result['corrections_made']
+        st.session_state.questions_data = questions_data  # update session state with corrected data
+
+        if corrections_made > 0:
+            st.success(f"✅ Applied {corrections_made} LaTeX corrections")
+    else:
+        st.warning("⚠️ No validated questions data found. Please complete previous stages first.")
 
 
 def has_validated_questions():
@@ -1451,3 +1466,4 @@ def create_question_summary(questions):
         summary_lines.append("")
     
     return "\n".join(summary_lines)
+
