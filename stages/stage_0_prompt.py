@@ -1,59 +1,51 @@
 # stages/stage_0_prompt.py
 import streamlit as st
-from pathlib import Path
 from navigation.manager import NavigationManager
 from utils.question_type_filter import QuestionTypeFilter
 from utils.ui_helpers import show_stage_banner
 
 def render_prompt_builder():
     """Render the complete Prompt Builder stage"""
-    
+
+    st.write("🔍 DEBUG: render_prompt_builder() called")
+    st.write(f"🔍 DEBUG: current_stage = {st.session_state.get('current_stage', 'NOT_SET')}")
+    st.write("🔍 DEBUG: About to call show_stage_banner()")
+
     # Progress indicator
     progress = (st.session_state.current_stage + 1) / 4
     st.progress(progress)
-    st.markdown(f"**Stage {st.session_state.current_stage + 1} of 4**: Prompt Builder")
 
     st.header("🎯 Build Your AI Prompt")
-    
-    # Stage description
-    col1, col2 = st.columns([2, 1])
-    with col1:
-        st.info("Create optimized prompts for AI question generation")
-    with col2:
-        st.metric("Stage", "1 of 4")
-    
-    # Compatible AI Providers
-    render_ai_providers_info()
-    
-    # Educational Context Section
+
+    # --- Educational Context (PROTECTED SECTION - DO NOT MODIFY) ---
     educational_context = render_educational_context()
-    
-    # Enhanced Question Configuration using filter system
+
+    # --- Streamlined Question Type Selection ---
     question_filter = QuestionTypeFilter()
     question_config = question_filter.render_complete_question_configuration()
-    
-    # Advanced Options
+
+    # --- Advanced Options ---
     difficulty_level, include_explanations, custom_instructions = render_advanced_options()
-    
-    # Generate Prompt (only if valid selection)
+
+    # --- Generate Prompt ---
     if question_config['valid_selection']:
         if st.button("🎯 Generate Complete Prompt", type="primary", use_container_width=True):
             generate_complete_prompt_enhanced(
-                educational_context, 
-                question_config, 
-                difficulty_level, 
-                include_explanations, 
+                educational_context,
+                question_config,
+                difficulty_level,
+                include_explanations,
                 custom_instructions
             )
+            # Auto-advance to Stage 1 (AI Processing)
+            NavigationManager.advance_stage(1, source="prompt_builder_generate")
     else:
         st.button("🎯 Generate Complete Prompt", type="primary", use_container_width=True, disabled=True)
-        st.warning("⚠️ Please select at least one question type before generating the prompt")
-    
-    # Display Generated Prompt
-    display_generated_prompt()
+        st.warning("Please select at least one question type.")
 
-    show_stage_banner(st.session_state.current_stage, total_stages=4)
-
+    # --- Move Stage Banner to Bottom ---
+    show_stage_banner(1, total_stages=4)
+    st.write("🔍 DEBUG: show_stage_banner() completed (bottom of page)")
 
 def render_ai_providers_info():
     """Display compatible AI providers information"""
@@ -144,8 +136,7 @@ def generate_complete_prompt_enhanced(educational_context, question_config,
                 'type_instructions': question_config['type_instructions']
             }
             
-        st.success("✅ Enhanced prompt generated successfully!")
-        st.info(template_source)
+        
         
         # Show summary of configuration
         with st.expander("📋 Prompt Configuration Summary"):
@@ -231,51 +222,49 @@ def generate_complete_prompt(educational_context, question_count, question_type,
 
 
 def display_generated_prompt():
-    """Display the generated prompt and next steps with enhanced configuration support"""
-    if 'generated_prompt' in st.session_state and st.session_state.generated_prompt:
-        st.subheader("📋 Generated Prompt")
-        
-        # Show prompt configuration (support both old and new format)
-        if 'prompt_config' in st.session_state:
-            config = st.session_state.prompt_config
-            
-            # Handle enhanced configuration format
-            if 'selected_types' in config:
-                col1, col2, col3 = st.columns(3)
-                with col1:
-                    st.metric("Questions", config['question_count'])
-                with col2:
-                    type_display = f"{len(config['selected_types'])} types" if len(config['selected_types']) > 1 else config['selected_types'][0]
-                    st.metric("Types", type_display)
-                with col3:
-                    st.metric("Difficulty", config['difficulty'])
-                
-                # Show selected types in detail
-                with st.expander("📊 Question Type Breakdown"):
-                    st.markdown("**Selected Types:**")
-                    for q_type in config['selected_types']:
-                        st.markdown(f"- {q_type}")
-                    st.markdown(f"**Distribution:** {config['distribution_mode']}")
-            else:
-                # Handle legacy configuration format
-                col1, col2, col3 = st.columns(3)
-                with col1:
-                    st.metric("Questions", config['question_count'])
-                with col2:
-                    st.metric("Type", config['question_type'])
-                with col3:
-                    st.metric("Difficulty", config['difficulty'])
-        
-        # Display the prompt
-        st.text_area(
-            "Complete Prompt (Ready for AI):",
-            st.session_state.generated_prompt,
-            height=250,
-            help="Copy this entire prompt and paste it into your chosen AI"
+    """Show generated prompt and provide direct next action."""
+    prompt = st.session_state.get("generated_prompt", None)
+    if prompt:
+        method = st.radio(
+            "How would you like to use your prompt?",
+            ["💾 Download as file", "📋 Copy to clipboard"],
+            horizontal=True,
+            key="prompt_method"
         )
-
-        # Next steps
-        render_next_steps()
+        if method == "💾 Download as file":
+            file_name = st.text_input(
+                "Prompt filename:",
+                value="my_prompt",
+                help="Enter filename (we'll add .txt automatically)",
+                key="prompt_filename"
+            )
+            if file_name.strip():
+                clean_name = file_name.strip().replace(" ", "_")
+                clean_name = "".join(c for c in clean_name if c.isalnum() or c in ('_', '-'))
+                if not clean_name:
+                    clean_name = "prompt"
+                final_prompt_filename = f"{clean_name}.txt"
+                st.download_button(
+                    label="💾 Download Prompt",  # Added download emoji
+                    data=prompt,
+                    file_name=final_prompt_filename,
+                    mime="text/plain",
+                    use_container_width=True,
+                    type="primary"  # Makes the button red
+                )
+            else:
+                st.warning("⚠️ Enter a filename above")
+        else:
+            st.text_area(
+                "Select all and copy (Ctrl+A, then Ctrl+C):",
+                prompt,
+                height=150,
+                key="prompt_copy_area"
+            )
+        st.markdown("---")
+        if st.button("➡️ Continue to Stage 2: AI Processing", type="primary", use_container_width=True):
+            st.session_state.current_stage = 1
+            st.rerun()
 
 
 def render_next_steps():

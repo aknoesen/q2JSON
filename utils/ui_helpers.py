@@ -113,7 +113,6 @@ def create_sidebar():
     stage_data = [
         {"name": "Prompt Builder", "icon": "🎯", "desc": "Create AI prompts"},
         {"name": "AI Processing", "icon": "🤖", "desc": "Process AI responses"}, 
-        {"name": "Validate and Autocorrect", "icon": "✅", "desc": "Validate and autocorrect JSON"},
         {"name": "Human Review and Editing", "icon": "📝", "desc": "Manual review and editing"},
         {"name": "Output", "icon": "📤", "desc": "Export and download output"}
     ]
@@ -181,7 +180,7 @@ def create_main_header():
     This tool bridges the gap between AI-generated content and educational deployment.
     """)
 
-def show_stage_banner(current_stage: int, total_stages: int = 5):
+def show_stage_banner(current_stage, total_stages=4):  # Changed default from 5 to 4
     st.markdown(
         f"""
         <div style="
@@ -194,7 +193,7 @@ def show_stage_banner(current_stage: int, total_stages: int = 5):
             font-size: 1.4rem;
             font-weight: 600;
         ">
-            Stage {current_stage + 1} of {total_stages}
+            Stage {current_stage} of {total_stages}
         </div>
         """,
         unsafe_allow_html=True,

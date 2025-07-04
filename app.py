@@ -10,12 +10,14 @@ from stages.stage_0_prompt import render_prompt_builder
 from stages.stage_1_processing import render_ai_processing  
 from stages.stage_2_validation import render_json_validation
 from stages.stage_3_human_review import render_human_review
-from utils.ui_helpers import load_css, create_sidebar, create_main_header
+from utils.ui_helpers import load_css, create_sidebar, create_main_header, show_stage_banner
 from modules.latex_corrector import LaTeXCorrector
 
 def main():
     """Main application entry point - Clean and Simple!"""
-    
+    if "current_stage" not in st.session_state:
+        st.session_state.current_stage = 0
+
     # Page configuration
     st.set_page_config(
         page_title="q2JSON Generator",
@@ -32,23 +34,26 @@ def main():
     # Create UI components
     create_sidebar()
     create_main_header()
-    
+
+    # --- DEBUG: Show current stage before routing ---
+    st.write(f"🔍 DEBUG: app.py - current_stage = {st.session_state.get('current_stage', 'NOT_SET')}")
+
     # Route to correct stage - NO COMPLEX INDENTATION!
-    current_stage = st.session_state.current_stage
-    
+    current_stage = st.session_state.get("current_stage", 0)
     if current_stage == 0:
+        st.write("🔍 DEBUG: app.py - Calling render_prompt_builder()")
         render_prompt_builder()
     elif current_stage == 1:
-        render_ai_processing()  # This was your problem stage - now clean!
+        st.write("🔍 DEBUG: app.py - Calling render_ai_processing()")
+        render_ai_processing()
     elif current_stage == 2:
+        st.write("🔍 DEBUG: app.py - Calling render_json_validation()")
         render_json_validation()
     elif current_stage == 3:
+        st.write("🔍 DEBUG: app.py - Calling render_human_review()")
         render_human_review()
     else:
-        st.error(f"Invalid stage: {current_stage}")
-        st.session_state.current_stage = 0
-        st.rerun()
-
+        st.error("Unknown stage. Please reset the application.")
 
 def create_main_header():
     st.markdown(

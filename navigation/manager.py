@@ -10,9 +10,11 @@ class NavigationManager:
     STAGES = {
         0: "Prompt Builder",
         1: "AI Processing",
-        2: "JSON Validation & Export",
-        3: "Human Review & Editing"
+        2: "Human Review & Editing",
+        3: "Output"
     }
+    # Remove "JSON Validation" from navigation and stage arrays
+
     REQUIRED_KEYS = [
         "current_stage",
         "navigation_timestamp",
@@ -44,10 +46,10 @@ class NavigationManager:
                 return False, "You must generate a prompt before proceeding to AI Processing."
         if target_stage == 2:
             if not st.session_state.get("raw_extracted_json"):
-                return False, "You must process and extract JSON before proceeding to Validation."
+                return False, "You must process and extract JSON before proceeding to Human Review."
         if target_stage == 3:
             if not st.session_state.get("questions_data"):
-                return False, "You must validate questions before proceeding to Human Review."
+                return False, "You must validate questions before proceeding to Output."
         if not (NavigationManager.STAGE_MIN <= target_stage <= NavigationManager.STAGE_MAX):
             return False, f"Target stage {target_stage} is out of bounds."
         return True, ""

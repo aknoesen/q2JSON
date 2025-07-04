@@ -15,17 +15,9 @@ class QuestionTypeFilter:
         ]
     
     def render_question_type_selector(self):
-        """Enhanced question type selection using robust filter pattern"""
+        """Streamlined question type selection using robust filter pattern"""
         
         st.subheader("🎯 Question Type Selection")
-        
-        # Instructions
-        st.markdown("""
-        **Instructions:**
-        - ✅ **Selected types** will be included in your prompt
-        - ❌ **Uncheck types** to exclude them  
-        - 🔍 **Use this to focus** on specific question formats
-        """)
         
         # Reset handling (BEFORE widget creation)
         reset_key = "reset_question_types_requested"
@@ -54,7 +46,7 @@ class QuestionTypeFilter:
             options=type_options,
             default=default_selection,
             key=widget_key,
-            help="💡 Tip: Select multiple types for variety, or focus on specific types"
+            help="Select one or more types for your prompt."
         )
         
         # Show descriptions for selected types
@@ -72,13 +64,9 @@ class QuestionTypeFilter:
                 st.session_state[reset_key] = True
                 st.rerun()
         
-        # Status feedback
+        # Concise status feedback
         if selected_types:
-            excluded_count = len(type_options) - len(selected_types)
-            if excluded_count > 0:
-                st.info(f"✅ {len(selected_types)} question types selected\n📋 {excluded_count} types excluded")
-            else:
-                st.success(f"✅ All {len(type_options)} question types selected")
+            st.caption(f"{len(selected_types)} selected")
         else:
             st.warning("⚠️ No question types selected - please choose at least one")
         

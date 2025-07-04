@@ -6,11 +6,11 @@ from utils.ui_helpers import show_stage_banner
 
 def render_json_validation():
     """Render the complete JSON Validation & Export stage"""
-    show_stage_banner(st.session_state.current_stage, total_stages=5)
-    # Progress indicator
-    progress = (st.session_state.current_stage + 1) / 5
-    st.progress(progress)
-    st.markdown(f"**Stage {st.session_state.current_stage + 1} of 5**: JSON Validation")
+    # Change all "of 5" to "of 4"
+    st.caption(f"Stage 3 of 4")
+
+    # Change total_stages=5 to total_stages=4
+    show_stage_banner(3, total_stages=4)
 
     st.header("✅ Validate and Autocorrect")
     
