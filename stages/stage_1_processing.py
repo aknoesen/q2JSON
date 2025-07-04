@@ -2,14 +2,15 @@
 import streamlit as st
 import re
 from navigation.manager import NavigationManager
-
+from utils.ui_helpers import show_stage_banner
+show_stage_banner(st.session_state.current_stage, total_stages=5)
 def render_ai_processing():
     """Render the complete AI Processing stage - JSON Processing Focus"""
     
     # Progress indicator
-    progress = (st.session_state.current_stage + 1) / 4
+    progress = (st.session_state.current_stage + 1) / 5
     st.progress(progress)
-    st.markdown(f"**Stage {st.session_state.current_stage + 1} of 4**: AI Processing")
+    st.markdown(f"**Stage {st.session_state.current_stage + 1} of 5**: AI Processing")
 
     st.header("🤖 Process AI JSON Response")
     
@@ -19,7 +20,7 @@ def render_ai_processing():
         st.info("Upload and process JSON responses from AI question generation")
         st.markdown("**This stage accepts only JSON files or JSON content**")
     with col2:
-        st.metric("Stage", "2 of 4")
+        st.metric("Stage", "2 of 5")
     
     st.subheader("📥 Upload AI Response")
     
@@ -375,3 +376,5 @@ def display_processing_results():
     )
     # ...your form fields here...
     st.markdown("</div>", unsafe_allow_html=True)
+
+    show_stage_banner(st.session_state.current_stage, total_stages=5)

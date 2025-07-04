@@ -2,16 +2,17 @@
 import streamlit as st
 from modules.json_processor import JSONProcessor
 from navigation.manager import NavigationManager
+from utils.ui_helpers import show_stage_banner
 
 def render_json_validation():
     """Render the complete JSON Validation & Export stage"""
-    
+    show_stage_banner(st.session_state.current_stage, total_stages=5)
     # Progress indicator
-    progress = (st.session_state.current_stage + 1) / 4
+    progress = (st.session_state.current_stage + 1) / 5
     st.progress(progress)
-    st.markdown(f"**Stage {st.session_state.current_stage + 1} of 4**: JSON Validation")
+    st.markdown(f"**Stage {st.session_state.current_stage + 1} of 5**: JSON Validation")
 
-    st.header("✅ JSON Validation & Export")
+    st.header("✅ Validate and Autocorrect")
     
     # Check if we have raw JSON from Stage 2
     if not has_raw_json():
@@ -175,12 +176,12 @@ def render_workflow_completion():
     with col1:
         NavigationManager.create_navigation_selector(
             target_stage=3,
-            label="➡️ Human Review & Edit"
+            label="➡️ Human Review and Editing"
         )
     with col2:
         NavigationManager.create_navigation_selector(
-            target_stage=0,
-            label="🔄 Create New Questions"
+            target_stage=4,
+            label="➡️ Output"
         )
     with col3:
         st.success("🎉 Validation Complete!")

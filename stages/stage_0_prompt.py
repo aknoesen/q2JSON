@@ -3,6 +3,7 @@ import streamlit as st
 from pathlib import Path
 from navigation.manager import NavigationManager
 from utils.question_type_filter import QuestionTypeFilter
+from utils.ui_helpers import show_stage_banner
 
 def render_prompt_builder():
     """Render the complete Prompt Builder stage"""
@@ -50,6 +51,8 @@ def render_prompt_builder():
     
     # Display Generated Prompt
     display_generated_prompt()
+
+    show_stage_banner(st.session_state.current_stage, total_stages=4)
 
 
 def render_ai_providers_info():

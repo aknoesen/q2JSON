@@ -5,6 +5,12 @@ import copy
 from navigation.manager import NavigationManager
 from modules.latex_corrector import LaTeXCorrector
 from utils.download_utils import render_download_button
+from utils.ui_helpers import show_stage_banner
+
+show_stage_banner(st.session_state.current_stage, total_stages=5)
+
+
+
 
 # Import Q2JSON Stage 4 components
 try:
@@ -1503,7 +1509,7 @@ def create_question_summary(questions):
 def render_main_content_navigation():
     """Professional, consistent navigation controls at the bottom of main content (Priority 3, FIXED)"""
     current_stage = st.session_state.get("current_stage", 3)
-    total_stages = 4
+    total_stages = 5  # <-- update this from 4 to 5
     can_go_back = current_stage > 0
     can_go_next = current_stage < total_stages - 1
     can_complete = current_stage == total_stages - 1

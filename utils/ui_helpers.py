@@ -113,7 +113,9 @@ def create_sidebar():
     stage_data = [
         {"name": "Prompt Builder", "icon": "🎯", "desc": "Create AI prompts"},
         {"name": "AI Processing", "icon": "🤖", "desc": "Process AI responses"}, 
-        {"name": "JSON Validation", "icon": "✅", "desc": "Validate & export"}
+        {"name": "Validate and Autocorrect", "icon": "✅", "desc": "Validate and autocorrect JSON"},
+        {"name": "Human Review and Editing", "icon": "📝", "desc": "Manual review and editing"},
+        {"name": "Output", "icon": "📤", "desc": "Export and download output"}
     ]
     
     current_stage = st.session_state.current_stage
@@ -178,3 +180,22 @@ def create_main_header():
     Transform messy AI responses into perfectly formatted JSON questions ready for educational use.
     This tool bridges the gap between AI-generated content and educational deployment.
     """)
+
+def show_stage_banner(current_stage: int, total_stages: int = 5):
+    st.markdown(
+        f"""
+        <div style="
+            background: linear-gradient(90deg, #1f77b4 0%, #764ba2 100%);
+            padding: 1rem 0;
+            border-radius: 16px;
+            margin-bottom: 2rem;
+            color: white;
+            text-align: center;
+            font-size: 1.4rem;
+            font-weight: 600;
+        ">
+            Stage {current_stage + 1} of {total_stages}
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
