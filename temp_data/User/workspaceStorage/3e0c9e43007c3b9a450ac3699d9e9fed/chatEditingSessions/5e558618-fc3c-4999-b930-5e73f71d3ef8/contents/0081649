@@ -1,0 +1,1587 @@
+# stages/stage_3_human_review.py
+import streamlit as st
+import json
+import copy
+from navigation.manager import NavigationManager
+from modules.latex_corrector import LaTeXCorrector
+from utils.download_utils import render_download_button
+from utils.ui_helpers import show_stage_banner
+
+
+
+
+
+# Import Q2JSON Stage 4 components
+try:
+    from extracted_components.editor_framework import Q2JSONEditorFramework
+    from extracted_components.latex_processor import Q2JSONLaTeXProcessor
+    from extracted_components.question_renderer import Q2JSONQuestionRenderer
+    from extracted_components.validation_manager import Q2JSONValidationManager
+except ImportError:
+    # Fallback if components not available
+    st.error("Q2JSON Stage 4 components not found. Please ensure extracted_components are available.")
+    Q2JSONEditorFramework = None
+    Q2JSONLaTeXProcessor = None
+    Q2JSONQuestionRenderer = None
+    Q2JSONValidationManager = None
+
+
+def render_human_review():
+    """Render the complete Human Review & Editing stage"""
+    show_stage_banner(st.session_state.current_stage, total_stages=4)
+
+    # Progress indicator
+    progress = (st.session_state.current_stage + 1) / 4
+    st.progress(progress)
+    st.markdown(f"**Stage {st.session_state.current_stage + 1} of 4**: Human Review & Editing")
+
+    st.header("👥 Human Review & Editing")
+
+    # Check if we have validated questions from Stage 2
+    if not has_validated_questions():
+        render_no_questions_warning()
+        # Still show navigation at bottom, but disable Next/Finish
+        render_main_content_navigation()
+        return
+
+    # Skip the Q2JSON component check since we know they don't exist
+    # and go directly to the working editor
+
+    # Render the editor interface
+    render_editor_interface()
+
+    # Workflow completion
+    render_workflow_completion()
+
+    # Bottom navigation (Priority 3)
+    render_main_content_navigation()
+
+    # LaTeX correction integration (fixed)
+    questions_data = st.session_state.get('questions_data', None)
+    if questions_data:
+        corrector = LaTeXCorrector()
+        result = corrector.correct_latex_in_questions(questions_data)
+        questions_data = result['corrected_data']
+        corrections_made = result['corrections_made']
+        st.session_state.questions_data = questions_data  # update session state with corrected data
+
+        if corrections_made > 0:
+            st.success(f"✅ Applied {corrections_made} LaTeX corrections")
+    else:
+        st.warning("⚠️ No validated questions data found. Please complete previous stages first.")
+
+
+def has_validated_questions():
+    """Check if we have validated questions from Stage 2"""
+    return ('questions_data' in st.session_state and 
+            st.session_state.questions_data and
+            'questions' in st.session_state.questions_data)
+
+
+def components_available():
+    """Check if Q2JSON Stage 4 components are available"""
+    # Since we know these don't exist, always return False
+    # This function is kept for compatibility but not used
+    return False
+
+def initialize_stage4_components():
+    """Initialize available components (working components, not Q2JSON)"""
+    
+    if 'stage4_components' not in st.session_state:
+        try:
+            # Import working components
+            from modules.json_processor import JSONProcessor
+            from modules.mathematical_consistency_detector import MathematicalConsistencyDetector
+            
+            processor = JSONProcessor()
+            math_detector = MathematicalConsistencyDetector()
+            
+            st.session_state.stage4_components = {
+                'json_processor': processor,
+                'math_detector': math_detector,
+                'status': 'initialized'
+            }
+            
+            return True
+            
+        except Exception as e:
+            st.session_state.stage4_components = {
+                'status': 'failed',
+                'error': str(e)
+            }
+            return False
+    
+    return st.session_state.stage4_components.get('status') == 'initialized'
+
+def render_no_questions_warning():
+    """Render warning when no validated questions are available"""
+    st.warning("⚠️ No validated questions available. Please complete previous stages first.")
+    st.markdown("""
+    **To get started with Human Review:**
+    1. Complete **Stage 1: Prompt Builder** to create your AI prompt
+    2. Complete **Stage 2: AI Processing** to upload and process the AI response
+    3. Complete **Stage 3: JSON Validation** to validate the questions
+    4. Return here for human review and editing
+    """)
+
+
+def render_component_error():
+    """Render error when Q2JSON components are not available"""
+    # This function is kept for compatibility but not used in the main flow
+    st.error("❌ Q2JSON Stage 4 Components Not Available")
+    st.markdown("""
+    **Missing Components:**
+    - Editor Framework
+    - LaTeX Processor  
+    - Question Renderer
+    - Validation Manager
+    
+    **Using fallback components instead.**
+    """)
+
+
+def render_editor_interface():
+    """Render the main Q2JSON Stage 4 editor interface"""
+    
+    # Get questions from session state
+    questions_data = st.session_state.get('questions_data', {})
+    questions = questions_data.get('questions', [])
+    
+    if not questions:
+        st.warning("No questions found in the validated data")
+        return
+    
+    # Debug section - show that choices exist
+    st.subheader("🔍 Debug: Question Data Verification")
+    first_question = questions[0]
+    choices = first_question.get('choices', [])
+    st.write(f"**First question:** {first_question.get('title', 'No title')[:50]}...")
+    st.write(f"**Question type:** {first_question.get('type', 'No type')}")
+    st.write(f"**Choices count:** {len(choices)}")
+    
+    if choices:
+        st.success(f"✅ Choices data is present ({len(choices)} choices)")
+    else:
+        st.error("❌ No choices found in question data")
+    
+    # Since Q2JSON components don't exist, use working components
+    st.subheader("📝 Question Editor")
+    
+    try:
+        # Import working components
+        from modules.json_processor import JSONProcessor
+        from modules.mathematical_consistency_detector import MathematicalConsistencyDetector
+        
+        processor = JSONProcessor()
+        math_detector = MathematicalConsistencyDetector()
+        
+        st.success("✅ Using JSONProcessor and MathematicalConsistencyDetector")
+        
+        # Create the editor interface
+        render_working_editor(questions, processor, math_detector)
+        
+    except ImportError as e:
+        st.error(f"❌ Could not import working components: {e}")
+        render_simple_fallback_editor(questions)
+    except Exception as e:
+        st.error(f"❌ Error with components: {e}")
+        render_simple_fallback_editor(questions)
+
+def render_working_editor(questions, processor, math_detector):
+    """Render editor using working components with proper layout and view options"""
+    
+    st.write("Using working components for question editing")
+    
+    # Question navigation section
+    st.subheader("🔢 Question Navigation")
+    
+    # Create navigation columns
+    nav_col1, nav_col2, nav_col3 = st.columns([1, 2, 1])
+    
+    with nav_col1:
+        # Previous button
+        if st.button("⬅️ Previous", key="nav_previous", disabled=st.session_state.get('current_question_idx', 0) == 0):
+            if 'current_question_idx' in st.session_state:
+                st.session_state.current_question_idx = max(0, st.session_state.current_question_idx - 1)
+            st.rerun()
+    
+    with nav_col2:
+        # Question selector (dropdown + quick jump buttons)
+        question_idx = st.selectbox(
+            "Select Question to Edit",
+            range(len(questions)),
+            format_func=lambda x: f"Question {x + 1}: {questions[x].get('title', 'Untitled')[:40]}...",
+            key="question_selector",
+            index=st.session_state.get('current_question_idx', 0)
+        )
+        
+        # Update session state
+        st.session_state.current_question_idx = question_idx
+        
+        # Quick jump buttons - show all 10 questions
+        st.write("**Quick Jump:**")
+        jump_cols = st.columns(10)
+        for i in range(len(questions)):
+            with jump_cols[i]:
+                # Fix the button type logic
+                if i == question_idx:
+                    button_type = "primary"
+                else:
+                    button_type = "secondary"
+                
+                if st.button(f"{i+1}", key=f"jump_{i}", type=button_type):
+                    st.session_state.current_question_idx = i
+                    st.rerun()
+    
+    with nav_col3:
+        # Next button
+        if st.button("Next ➡️", key="nav_next", disabled=st.session_state.get('current_question_idx', 0) == len(questions) - 1):
+            if 'current_question_idx' in st.session_state:
+                st.session_state.current_question_idx = min(len(questions) - 1, st.session_state.current_question_idx + 1)
+            st.rerun()
+    
+    # Show current question info
+    selected_question = questions[question_idx]
+    st.info(f"📝 Currently editing: **Question {question_idx + 1}** of {len(questions)} | Type: {selected_question.get('type', 'Unknown')}")
+    
+    # Progress indicator
+    progress_value = (question_idx + 1) / len(questions)
+    st.progress(progress_value)
+    st.caption(f"Question {question_idx + 1} of {len(questions)}")
+    
+    # View mode selector
+    view_mode = st.radio(
+        "Select View Mode:",
+        ["👨‍🏫 Teacher View", "👨‍🎓 Student View", "🔧 Raw Data View", "📊 Analysis View"],
+        horizontal=True,
+        key="view_mode"
+    )
+    
+    # Create layout based on view mode
+    if view_mode == "👨‍🏫 Teacher View":
+        render_teacher_view(selected_question, question_idx, questions)
+    elif view_mode == "👨‍🎓 Student View":
+        render_student_view(selected_question, question_idx, questions)
+    elif view_mode == "🔧 Raw Data View":
+        render_raw_data_view(selected_question, question_idx, questions)
+    elif view_mode == "📊 Analysis View":
+        render_analysis_view(selected_question, question_idx, questions)
+    
+    # REMOVED: Bottom navigation section
+    # The bottom navigation with all question buttons has been removed
+    # Only the top navigation remains for cleaner interface
+
+def render_teacher_view(selected_question, question_idx, questions):
+    """Render teacher view with editing capabilities and live preview"""
+    
+    # Create two-column layout: Preview on left, Editor on right
+    col1, col2 = st.columns([1, 1])
+    
+    with col1:
+        st.subheader(f"📖 Question {question_idx + 1} - Live Preview")
+        
+        # Add mini navigation in preview
+        mini_nav_col1, mini_nav_col2, mini_nav_col3 = st.columns([1, 2, 1])
+        
+        with mini_nav_col1:
+            if st.button("⬅️", key="mini_prev", disabled=question_idx == 0):
+                st.session_state.current_question_idx = max(0, question_idx - 1)
+                st.rerun()
+        
+        with mini_nav_col2:
+            st.write(f"**Question {question_idx + 1} of {len(questions)}**")
+        
+        with mini_nav_col3:
+            if st.button("➡️", key="mini_next", disabled=question_idx == len(questions) - 1):
+                st.session_state.current_question_idx = min(len(questions) - 1, question_idx + 1)
+                st.rerun()
+        
+        # **Use widget values directly for live preview**
+        # Get current values from the widgets using their keys
+        preview_title = st.session_state.get(f"title_{question_idx}", selected_question.get('title', ''))
+        preview_text = st.session_state.get(f"text_{question_idx}", selected_question.get('question_text', ''))
+        preview_type = st.session_state.get(f"type_{question_idx}", selected_question.get('type', 'multiple_choice'))
+        preview_points = st.session_state.get(f"points_{question_idx}", selected_question.get('points', 1))
+        preview_difficulty = st.session_state.get(f"difficulty_{question_idx}", selected_question.get('difficulty', 'Medium'))
+        
+        # Build preview question from current widget values
+        preview_question = {
+            'title': preview_title,
+            'question_text': preview_text,
+            'type': preview_type,
+            'points': preview_points,
+            'difficulty': preview_difficulty,
+            'correct_answer': selected_question.get('correct_answer', ''),
+            'choices': selected_question.get('choices', []),
+            'tolerance': selected_question.get('tolerance', 0.05),
+            'feedback_correct': st.session_state.get(f"feedback_correct_{question_idx}", selected_question.get('feedback_correct', '')),
+            'feedback_incorrect': st.session_state.get(f"feedback_incorrect_{question_idx}", selected_question.get('feedback_incorrect', ''))
+        }
+        
+        # Update choices for multiple choice
+        if preview_type == 'multiple_choice':
+            preview_choices = []
+            for i in range(10):  # Check up to 10 choices
+                choice_key = f"choice_{question_idx}_{i}"
+                if choice_key in st.session_state and st.session_state[choice_key].strip():
+                    preview_choices.append(st.session_state[choice_key].strip())
+            
+            if preview_choices:
+                preview_question['choices'] = preview_choices
+                preview_question['correct_answer'] = st.session_state.get(f"correct_{question_idx}", preview_choices[0] if preview_choices else '')
+        
+        # Update correct answer based on type
+        if preview_type == 'numerical':
+            preview_question['correct_answer'] = str(st.session_state.get(f"correct_num_{question_idx}", 0.0))
+            preview_question['tolerance'] = st.session_state.get(f"tolerance_{question_idx}", 0.05)
+        elif preview_type == 'true_false':
+            preview_question['correct_answer'] = st.session_state.get(f"correct_tf_{question_idx}", 'True')
+        elif preview_type == 'short_answer':
+            preview_question['correct_answer'] = st.session_state.get(f"correct_text_{question_idx}", '')
+        
+        # Show status
+        has_changes = (preview_title != selected_question.get('title', '') or 
+                      preview_text != selected_question.get('question_text', '') or 
+                      preview_type != selected_question.get('type', 'multiple_choice') or
+                      preview_points != selected_question.get('points', 1) or
+                      preview_difficulty != selected_question.get('difficulty', 'Medium'))
+        
+        if has_changes:
+            st.success("📝 Live Preview - showing current edits")
+        else:
+            st.info("💾 Saved Version - no current edits")
+        
+        # Display question with current edits
+        st.write(f"**Title:** {preview_question.get('title', 'No title')}")
+        st.write(f"**Type:** {preview_question.get('type', 'No type')}")
+        st.write(f"**Difficulty:** {preview_question.get('difficulty', 'Medium')}")
+        st.write(f"**Points:** {preview_question.get('points', 1)}")
+        
+        # Question text
+        st.write("**Question:**")
+        st.write(preview_question.get('question_text', 'No text'))
+        
+        # Show choices with correct answer highlighted
+        question_type = preview_question.get('type', 'No type')
+        
+        if question_type == 'multiple_choice':
+            choices = preview_question.get('choices', [])
+            st.write("**Answer Choices:**")
+            
+            if choices:
+                for i, choice in enumerate(choices):
+                    if choice == preview_question.get('correct_answer'):
+                        st.write(f"  **{i+1}. {choice}** ✅ (Correct)")
+                    else:
+                        st.write(f"  {i+1}. {choice}")
+                st.success(f"✅ {len(choices)} choices available")
+            else:
+                st.error("❌ No choices found")
+        
+        elif question_type == 'numerical':
+            st.write("**Answer Type:** Numerical")
+            st.write(f"**Correct Answer:** {preview_question.get('correct_answer', 'Not specified')}")
+            tolerance = preview_question.get('tolerance', 0.05)
+            st.write(f"**Tolerance:** ±{tolerance}")
+        
+        elif question_type == 'true_false':
+            st.write("**Answer Type:** True/False")
+            correct_answer = preview_question.get('correct_answer', 'Not specified')
+            st.write(f"**Correct Answer:** {correct_answer} ✅")
+        
+        # Show feedback if available
+        if preview_question.get('feedback_correct') or preview_question.get('feedback_incorrect'):
+            st.write("**Feedback:**")
+            if preview_question.get('feedback_correct'):
+                st.success(f"✅ Correct: {preview_question.get('feedback_correct')}")
+            if preview_question.get('feedback_incorrect'):
+                st.error(f"❌ Incorrect: {preview_question.get('feedback_incorrect')}")
+        
+        # Show modification status
+        if has_changes:
+            st.warning("⚠️ You have unsaved changes")
+        else:
+            st.success("✅ All changes saved")
+        
+        if question_idx in st.session_state.get('modified_questions', set()):
+            st.success("✅ Question has been modified and saved")
+        
+        # Show last modified time
+        if 'last_modified' in st.session_state:
+            st.caption(f"Last modified: {st.session_state.last_modified}")
+    
+    with col2:
+        render_question_editor(selected_question, question_idx)
+
+def render_question_editor(selected_question, question_idx):
+    """Render the question editor with professional, standardized form styling (Priority 4)"""
+
+    st.markdown(
+        """
+        <div style="
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 2rem 2rem 1.5rem 2rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 8px rgba(30,60,120,0.04);
+            border: 1px solid #e0e3e8;
+        ">
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.markdown(
+        '<h3 style="color:#1f77b4;margin-bottom:1.2rem;">✏️ Edit Question</h3>',
+        unsafe_allow_html=True,
+    )
+
+    # Question title
+    title_key = f"title_{question_idx}"
+    title_value = selected_question.get('title', '')
+
+    st.text_input(
+        "Question Title",
+        value=title_value,
+        key=title_key,
+        help="Changes appear in preview immediately",
+        placeholder="Enter a clear, descriptive question title...",
+    )
+
+    # Question text
+    text_key = f"text_{question_idx}"
+    text_value = selected_question.get('question_text', '')
+
+    st.text_area(
+        "Question Text",
+        value=text_value,
+        height=100,
+        key=text_key,
+        help="Changes appear in preview immediately",
+        placeholder="Enter the full question text here...",
+    )
+
+    # Question type
+    type_key = f"type_{question_idx}"
+    current_type = selected_question.get('type', 'multiple_choice')
+
+    try:
+        type_index = ["multiple_choice", "numerical", "true_false", "short_answer"].index(current_type)
+    except ValueError:
+        type_index = 0
+
+    st.selectbox(
+        "Question Type",
+        ["multiple_choice", "numerical", "true_false", "short_answer"],
+        index=type_index,
+        key=type_key,
+        help="Changes appear in preview immediately",
+    )
+
+    # Type-specific editors
+    if st.session_state[type_key] == 'multiple_choice':
+        render_multiple_choice_editor(selected_question, question_idx)
+    elif st.session_state[type_key] == 'numerical':
+        render_numerical_editor(selected_question, question_idx)
+    elif st.session_state[type_key] == 'true_false':
+        render_true_false_editor(selected_question, question_idx)
+    else:
+        render_text_editor(selected_question, question_idx)
+
+    render_common_fields(selected_question, question_idx)
+
+    st.markdown(
+        """
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # Save and navigation section
+    st.markdown(
+        """
+        <div style="
+            background: #f1f3f4;
+            border-radius: 10px;
+            padding: 1.2rem 2rem 1.2rem 2rem;
+            margin-top: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid #e0e3e8;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        ">
+        """,
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        '<h4 style="color:#1f77b4;margin-bottom:1rem;">💾 Save & Navigate</h4>',
+        unsafe_allow_html=True,
+    )
+
+    # Check if there are unsaved changes by comparing widget values to saved values
+    has_changes = (
+        st.session_state.get(f"title_{question_idx}", selected_question.get('title', '')) != selected_question.get('title', '') or
+        st.session_state.get(f"text_{question_idx}", selected_question.get('question_text', '')) != selected_question.get('question_text', '') or
+        st.session_state.get(f"type_{question_idx}", selected_question.get('type', 'multiple_choice')) != selected_question.get('type', 'multiple_choice') or
+        st.session_state.get(f"points_{question_idx}", selected_question.get('points', 1)) != selected_question.get('points', 1) or
+        st.session_state.get(f"difficulty_{question_idx}", selected_question.get('difficulty', 'Medium')) != selected_question.get('difficulty', 'Medium')
+    )
+
+    if has_changes:
+        st.warning("⚠️ You have unsaved changes - click Save to permanently store them")
+    else:
+        st.success("✅ All changes saved")
+
+    # Save and navigation buttons (styled)
+    save_col1, save_col2, save_col3 = st.columns(3)
+    button_style = """
+        <style>
+        .stButton>button {
+            background-color: #1f77b4 !important;
+            color: #fff !important;
+            border-radius: 6px !important;
+            font-weight: 600 !important;
+            font-size: 1.05rem !important;
+            padding: 0.6rem 1.5rem !important;
+            border: none !important;
+            margin-bottom: 0.2rem !important;
+        }
+        .stButton>button:disabled {
+            background-color: #b0b8c1 !important;
+            color: #fff !important;
+        }
+        </style>
+    """
+    st.markdown(button_style, unsafe_allow_html=True)
+
+    with save_col1:
+        if st.button(f"💾 Save & Previous", key=f"save_prev_{question_idx}", disabled=question_idx == 0):
+            save_question_from_widgets(selected_question, question_idx)
+            st.session_state.current_question_idx = max(0, question_idx - 1)
+            st.rerun()
+
+    with save_col2:
+        if st.button(f"💾 Save Question", key=f"save_{question_idx}"):
+            if save_question_from_widgets(selected_question, question_idx):
+                st.success(f"✅ Question {question_idx + 1} saved successfully!")
+                st.balloons()
+            st.rerun()
+
+    with save_col3:
+        if st.button(f"💾 Save & Next", key=f"save_next_{question_idx}", disabled=question_idx == len(st.session_state.questions_data['questions']) - 1):
+            save_question_from_widgets(selected_question, question_idx)
+            st.session_state.current_question_idx = min(len(st.session_state.questions_data['questions']) - 1, question_idx + 1)
+            st.rerun()
+
+    # Reset and discard buttons (secondary style)
+    reset_col1, reset_col2 = st.columns(2)
+    secondary_button_style = """
+        <style>
+        .stButton>button.secondary {
+            background-color: #e0e3e8 !important;
+            color: #1f77b4 !important;
+            border-radius: 6px !important;
+            font-weight: 500 !important;
+            font-size: 1.02rem !important;
+            padding: 0.5rem 1.2rem !important;
+            border: none !important;
+        }
+        </style>
+    """
+    st.markdown(secondary_button_style, unsafe_allow_html=True)
+
+    with reset_col1:
+        if st.button(f"🔄 Reset to Saved", key=f"reset_{question_idx}"):
+            reset_form_to_saved(selected_question, question_idx)
+            st.rerun()
+
+    with reset_col2:
+        if st.button(f"🗑️ Discard Changes", key=f"discard_{question_idx}"):
+            discard_all_changes(selected_question, question_idx)
+            st.rerun()
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
+def render_multiple_choice_editor(selected_question, question_idx):
+    """Render multiple choice editor"""
+    
+    st.subheader("📋 Answer Choices")
+    
+    current_choices = selected_question.get('choices', [])
+    
+    # Show current choices count
+    st.write(f"**Edit Choices:**")
+    
+    # Create choice input fields
+    num_fields = max(4, len(current_choices))
+    new_choices = []
+    
+    for i in range(num_fields):
+        choice_value = current_choices[i] if i < len(current_choices) else ""
+        choice_key = f"choice_{question_idx}_{i}"
+        
+        new_choice = st.text_input(
+            f"Choice {i+1}",
+            value=choice_value,
+            key=choice_key,
+            placeholder=f"Enter choice {i+1}...",
+            help="Changes appear in preview immediately"
+        )
+        
+        if new_choice.strip():
+            new_choices.append(new_choice.strip())
+    
+    # Validation
+    if new_choices:
+        if len(new_choices) >= 2:
+            st.success(f"✅ {len(new_choices)} choices defined")
+        else:
+            st.warning(f"⚠️ Multiple choice questions should have at least 2 choices")
+    else:
+        st.error("❌ No choices defined")
+    
+    # Correct answer selector
+    if new_choices:
+        st.subheader("✅ Correct Answer")
+        
+        current_correct = selected_question.get('correct_answer', '')
+        correct_idx = 0
+        
+        if current_correct in new_choices:
+            correct_idx = new_choices.index(current_correct)
+        
+        st.selectbox(
+            "Select Correct Answer",
+            new_choices,
+            index=correct_idx,
+            key=f"correct_{question_idx}",
+            help="Changes appear in preview immediately"
+        )
+
+def render_numerical_editor(selected_question, question_idx):
+    """Render numerical question editor"""
+    
+    st.subheader("🔢 Numerical Answer")
+    
+    current_answer = selected_question.get('correct_answer', '')
+    try:
+        numeric_value = float(current_answer) if current_answer else 0.0
+    except (ValueError, TypeError):
+        numeric_value = 0.0
+    
+    st.number_input(
+        "Correct Answer",
+        value=numeric_value,
+        format="%.4f",
+        key=f"correct_num_{question_idx}",
+        help="Changes appear in preview immediately"
+    )
+    
+    st.number_input(
+        "Tolerance (±)",
+        value=selected_question.get('tolerance', 0.05),
+        min_value=0.0,
+        max_value=1.0,
+        format="%.4f",
+        key=f"tolerance_{question_idx}",
+        help="Changes appear in preview immediately"
+    )
+
+def render_true_false_editor(selected_question, question_idx):
+    """Render true/false question editor"""
+    
+    st.subheader("✅❌ True/False Answer")
+    
+    current_answer = selected_question.get('correct_answer', 'True')
+    st.selectbox(
+        "Correct Answer",
+        ["True", "False"],
+        index=0 if current_answer == 'True' else 1,
+        key=f"correct_tf_{question_idx}",
+        help="Changes appear in preview immediately"
+    )
+
+def render_text_editor(selected_question, question_idx):
+    """Render text answer editor"""
+    
+    st.subheader("📝 Text Answer")
+    
+    st.text_input(
+        "Correct Answer",
+        value=selected_question.get('correct_answer', ''),
+        key=f"correct_text_{question_idx}",
+        help="Changes appear in preview immediately"
+    )
+
+def render_common_fields(selected_question, question_idx):
+    """Render common fields"""
+    
+    st.subheader("📊 Additional Settings")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.number_input(
+            "Points",
+            value=selected_question.get('points', 1),
+            min_value=0,
+            max_value=10,
+            key=f"points_{question_idx}",
+            help="Changes appear in preview immediately"
+        )
+    
+    with col2:
+        current_difficulty = selected_question.get('difficulty', 'Medium')
+        try:
+            difficulty_index = ["Easy", "Medium", "Hard"].index(current_difficulty)
+        except ValueError:
+            difficulty_index = 1  # Default to Medium
+        
+        st.selectbox(
+            "Difficulty",
+            ["Easy", "Medium", "Hard"],
+            index=difficulty_index,
+            key=f"difficulty_{question_idx}",
+            help="Changes appear in preview immediately"
+        )
+    
+    # Feedback
+    with st.expander("📝 Feedback Settings"):
+        st.text_area(
+            "Feedback for Correct Answer",
+            value=selected_question.get('feedback_correct', ''),
+            height=75,
+            key=f"feedback_correct_{question_idx}",
+            help="Changes appear in preview immediately"
+        )
+        
+        st.text_area(
+            "Feedback for Incorrect Answer",
+            value=selected_question.get('feedback_incorrect', ''),
+            height=75,
+            key=f"feedback_incorrect_{question_idx}",
+            help="Changes appear in preview immediately"
+        )
+
+def debug_widget_state(question_idx):
+    """Debug function to show current widget state"""
+    
+    st.write("**Current Widget State:**")
+    
+    # Check title
+    title_key = f"title_{question_idx}"
+    if title_key in st.session_state:
+        st.write(f"Title: '{st.session_state[title_key]}'")
+    else:
+        st.write("Title: Not set in session state")
+    
+    # Check text
+    text_key = f"text_{question_idx}"
+    if text_key in st.session_state:
+        st.write(f"Text: '{st.session_state[text_key][:50]}...'")
+    else:
+        st.write("Text: Not set in session state")
+    
+    # Check type
+    type_key = f"type_{question_idx}"
+    if type_key in st.session_state:
+        st.write(f"Type: '{st.session_state[type_key]}'")
+    else:
+        st.write("Type: Not set in session state")
+    
+    # Check choices
+    choices_found = []
+    for i in range(10):
+        choice_key = f"choice_{question_idx}_{i}"
+        if choice_key in st.session_state and st.session_state[choice_key]:
+            choices_found.append(st.session_state[choice_key])
+    
+    if choices_found:
+        st.write(f"Choices: {len(choices_found)} found")
+        for i, choice in enumerate(choices_found):
+            st.write(f"  {i+1}. {choice}")
+    else:
+        st.write("Choices: None found in session state")
+
+def save_question_from_widgets(selected_question, question_idx):
+    """Save question using current widget values"""
+    
+    try:
+        # Build question from current widget values
+        updated_question = {
+            'title': st.session_state.get(f"title_{question_idx}", selected_question.get('title', '')),
+            'question_text': st.session_state.get(f"text_{question_idx}", selected_question.get('question_text', '')),
+            'type': st.session_state.get(f"type_{question_idx}", selected_question.get('type', 'multiple_choice')),
+            'points': st.session_state.get(f"points_{question_idx}", selected_question.get('points', 1)),
+            'difficulty': st.session_state.get(f"difficulty_{question_idx}", selected_question.get('difficulty', 'Medium')),
+            'feedback_correct': st.session_state.get(f"feedback_correct_{question_idx}", selected_question.get('feedback_correct', '')),
+            'feedback_incorrect': st.session_state.get(f"feedback_incorrect_{question_idx}", selected_question.get('feedback_incorrect', ''))
+        }
+        
+        # Handle type-specific fields
+        question_type = updated_question['type']
+        
+        if question_type == 'multiple_choice':
+            # Collect choices
+            choices = []
+            for i in range(10):  # Check up to 10 choices
+                choice_key = f"choice_{question_idx}_{i}"
+                if choice_key in st.session_state and st.session_state[choice_key].strip():
+                    choices.append(st.session_state[choice_key].strip())
+            
+            updated_question['choices'] = choices
+            updated_question['correct_answer'] = st.session_state.get(f"correct_{question_idx}", choices[0] if choices else '')
+        
+        elif question_type == 'numerical':
+            updated_question['correct_answer'] = str(st.session_state.get(f"correct_num_{question_idx}", 0.0))
+            updated_question['tolerance'] = st.session_state.get(f"tolerance_{question_idx}", 0.05)
+        
+        elif question_type == 'true_false':
+            updated_question['correct_answer'] = st.session_state.get(f"correct_tf_{question_idx}", 'True')
+        
+        elif question_type == 'short_answer':
+            updated_question['correct_answer'] = st.session_state.get(f"correct_text_{question_idx}", '')
+        
+        # Update the main questions data
+        st.session_state.questions_data['questions'][question_idx] = updated_question
+        
+        # Mark as modified
+        if 'modified_questions' not in st.session_state:
+            st.session_state.modified_questions = set()
+        st.session_state.modified_questions.add(question_idx)
+        
+        # Update timestamp
+        import datetime
+        st.session_state.last_modified = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        
+        return True
+        
+    except Exception as e:
+        st.error(f"Error saving question: {e}")
+        return False
+
+def discard_all_changes(selected_question, question_idx):
+    """Discard all changes and reset form to original saved values"""
+    
+    # Instead of trying to modify widget session state directly,
+    # we'll delete the keys and let the widgets reinitialize with their default values
+    
+    # List of all possible widget keys to clear
+    keys_to_clear = [
+        f"title_{question_idx}",
+        f"text_{question_idx}",
+        f"type_{question_idx}",
+        f"points_{question_idx}",
+        f"difficulty_{question_idx}",
+        f"feedback_correct_{question_idx}",
+        f"feedback_incorrect_{question_idx}",
+        f"correct_{question_idx}",
+        f"correct_num_{question_idx}",
+        f"correct_tf_{question_idx}",
+        f"correct_text_{question_idx}",
+        f"tolerance_{question_idx}"
+    ]
+    
+    # Add choice keys
+    for i in range(10):
+        keys_to_clear.append(f"choice_{question_idx}_{i}")
+    
+    # Remove keys from session state to force widget reset
+    for key in keys_to_clear:
+        if key in st.session_state:
+            del st.session_state[key]
+    
+    # Clear any edit question state
+    edit_key = f'edit_question_{question_idx}'
+    if edit_key in st.session_state:
+        del st.session_state[edit_key]
+    
+    # Set a flag to indicate we just discarded changes
+    st.session_state[f'discarded_{question_idx}'] = True
+
+def reset_form_to_saved(selected_question, question_idx):
+    """Reset form widgets to saved values"""
+    
+    # Same approach as discard - clear keys and let widgets reinitialize
+    discard_all_changes(selected_question, question_idx)
+    
+    # Set a flag to indicate we just reset
+    st.session_state[f'reset_{question_idx}'] = True
+
+def render_multiple_choice_editor(selected_question, question_idx):
+    """Render multiple choice editor"""
+    
+    st.subheader("📋 Answer Choices")
+    
+    current_choices = selected_question.get('choices', [])
+    
+    # Show current choices count
+    st.write(f"**Edit Choices:**")
+    
+    # Create choice input fields
+    num_fields = max(4, len(current_choices))
+    new_choices = []
+    
+    for i in range(num_fields):
+        choice_value = current_choices[i] if i < len(current_choices) else ""
+        choice_key = f"choice_{question_idx}_{i}"
+        
+        new_choice = st.text_input(
+            f"Choice {i+1}",
+            value=choice_value,
+            key=choice_key,
+            placeholder=f"Enter choice {i+1}...",
+            help="Changes appear in preview immediately"
+        )
+        
+        if new_choice.strip():
+            new_choices.append(new_choice.strip())
+    
+    # Validation
+    if new_choices:
+        if len(new_choices) >= 2:
+            st.success(f"✅ {len(new_choices)} choices defined")
+        else:
+            st.warning(f"⚠️ Multiple choice questions should have at least 2 choices")
+    else:
+        st.error("❌ No choices defined")
+    
+    # Correct answer selector
+    if new_choices:
+        st.subheader("✅ Correct Answer")
+        
+        current_correct = selected_question.get('correct_answer', '')
+        correct_idx = 0
+        
+        if current_correct in new_choices:
+            correct_idx = new_choices.index(current_correct)
+        
+        st.selectbox(
+            "Select Correct Answer",
+            new_choices,
+            index=correct_idx,
+            key=f"correct_{question_idx}",
+            help="Changes appear in preview immediately"
+        )
+
+def render_numerical_editor(selected_question, question_idx):
+    """Render numerical question editor"""
+    
+    st.subheader("🔢 Numerical Answer")
+    
+    current_answer = selected_question.get('correct_answer', '')
+    try:
+        numeric_value = float(current_answer) if current_answer else 0.0
+    except (ValueError, TypeError):
+        numeric_value = 0.0
+    
+    st.number_input(
+        "Correct Answer",
+        value=numeric_value,
+        format="%.4f",
+        key=f"correct_num_{question_idx}",
+        help="Changes appear in preview immediately"
+    )
+    
+    st.number_input(
+        "Tolerance (±)",
+        value=selected_question.get('tolerance', 0.05),
+        min_value=0.0,
+        max_value=1.0,
+        format="%.4f",
+        key=f"tolerance_{question_idx}",
+        help="Changes appear in preview immediately"
+    )
+
+def render_true_false_editor(selected_question, question_idx):
+    """Render true/false question editor"""
+    
+    st.subheader("✅❌ True/False Answer")
+    
+    current_answer = selected_question.get('correct_answer', 'True')
+    st.selectbox(
+        "Correct Answer",
+        ["True", "False"],
+        index=0 if current_answer == 'True' else 1,
+        key=f"correct_tf_{question_idx}",
+        help="Changes appear in preview immediately"
+    )
+
+def render_text_editor(selected_question, question_idx):
+    """Render text answer editor"""
+    
+    st.subheader("📝 Text Answer")
+    
+    st.text_input(
+        "Correct Answer",
+        value=selected_question.get('correct_answer', ''),
+        key=f"correct_text_{question_idx}",
+        help="Changes appear in preview immediately"
+    )
+
+def render_common_fields(selected_question, question_idx):
+    """Render common fields"""
+    
+    st.subheader("📊 Additional Settings")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.number_input(
+            "Points",
+            value=selected_question.get('points', 1),
+            min_value=0,
+            max_value=10,
+            key=f"points_{question_idx}",
+            help="Changes appear in preview immediately"
+        )
+    
+    with col2:
+        current_difficulty = selected_question.get('difficulty', 'Medium')
+        try:
+            difficulty_index = ["Easy", "Medium", "Hard"].index(current_difficulty)
+        except ValueError:
+            difficulty_index = 1  # Default to Medium
+        
+        st.selectbox(
+            "Difficulty",
+            ["Easy", "Medium", "Hard"],
+            index=difficulty_index,
+            key=f"difficulty_{question_idx}",
+            help="Changes appear in preview immediately"
+        )
+    
+    # Feedback
+    with st.expander("📝 Feedback Settings"):
+        st.text_area(
+            "Feedback for Correct Answer",
+            value=selected_question.get('feedback_correct', ''),
+            height=75,
+            key=f"feedback_correct_{question_idx}",
+            help="Changes appear in preview immediately"
+        )
+        
+        st.text_area(
+            "Feedback for Incorrect Answer",
+            value=selected_question.get('feedback_incorrect', ''),
+            height=75,
+            key=f"feedback_incorrect_{question_idx}",
+            help="Changes appear in preview immediately"
+        )
+
+def debug_widget_state(question_idx):
+    """Debug function to show current widget state"""
+    
+    st.write("**Current Widget State:**")
+    
+    # Check title
+    title_key = f"title_{question_idx}"
+    if title_key in st.session_state:
+        st.write(f"Title: '{st.session_state[title_key]}'")
+    else:
+        st.write("Title: Not set in session state")
+    
+    # Check text
+    text_key = f"text_{question_idx}"
+    if text_key in st.session_state:
+        st.write(f"Text: '{st.session_state[text_key][:50]}...'")
+    else:
+        st.write("Text: Not set in session state")
+    
+    # Check type
+    type_key = f"type_{question_idx}"
+    if type_key in st.session_state:
+        st.write(f"Type: '{st.session_state[type_key]}'")
+    else:
+        st.write("Type: Not set in session state")
+    
+    # Check choices
+    choices_found = []
+    for i in range(10):
+        choice_key = f"choice_{question_idx}_{i}"
+        if choice_key in st.session_state and st.session_state[choice_key]:
+            choices_found.append(st.session_state[choice_key])
+    
+    if choices_found:
+        st.write(f"Choices: {len(choices_found)} found")
+        for i, choice in enumerate(choices_found):
+            st.write(f"  {i+1}. {choice}")
+    else:
+        st.write("Choices: None found in session state")
+
+def render_simple_fallback_editor(questions):
+    """Simple fallback editor with two-panel layout"""
+    
+    st.warning("🔧 Using simple fallback editor")
+    
+    # Two-column layout
+    col1, col2 = st.columns([1, 2])
+    
+    with col1:
+        st.subheader("📋 Questions")
+        
+        # Question selector
+        question_idx = st.radio(
+            "Select Question:",
+            range(len(questions)),
+            format_func=lambda x: f"Q{x + 1}: {questions[x].get('title', 'Untitled')[:30]}...",
+            key="fallback_question_selector"
+        )
+        
+        # Show question info
+        selected_question = questions[question_idx]
+        st.write(f"**Type:** {selected_question.get('type', 'No type')}")
+        
+        # Show choices preview
+        choices = selected_question.get('choices', [])
+        if choices:
+            st.write(f"**Choices:** {len(choices)}")
+            for i, choice in enumerate(choices[:2]):
+                st.write(f"  {i+1}. {choice[:25]}...")
+            if len(choices) > 2:
+                st.write(f"  ... and {len(choices) - 2} more")
+    
+    with col2:
+        st.subheader(f"👁️ View Question {question_idx + 1}")
+        
+        # Display question
+        st.write(f"**Title:** {selected_question.get('title', 'No title')}")
+        st.write(f"**Type:** {selected_question.get('type', 'No type')}")
+        
+        # Question text
+        st.write("**Question Text:**")
+        st.write(selected_question.get('question_text', 'No text'))
+        
+        # **CRITICAL - DISPLAY CHOICES**
+        choices = selected_question.get('choices', [])
+        
+        st.write("**Answer Choices:**")
+        
+        if choices:
+            for i, choice in enumerate(choices):
+                # Highlight correct answer
+                if choice == selected_question.get('correct_answer'):
+                    st.write(f"  **{i+1}. {choice}** ✅")
+                else:
+                    st.write(f"  {i+1}. {choice}")
+            st.success(f"✅ {len(choices)} choices displayed successfully!")
+        else:
+            st.error("❌ No choices found")
+        
+        # Correct answer
+        st.write(f"**Correct Answer:** {selected_question.get('correct_answer', 'Not specified')}")
+        
+        # Additional info
+        st.write(f"**Points:** {selected_question.get('points', 'Not specified')}")
+        st.write(f"**Difficulty:** {selected_question.get('difficulty', 'Not specified')}")
+        
+        # Raw JSON
+        with st.expander("🔍 Raw Question Data"):
+            st.json(selected_question)
+
+def render_student_view(selected_question, question_idx, questions):
+    """Render student view - how the question appears to students"""
+    
+    # Create two-column layout: Student view on left, Quick edit on right
+    col1, col2 = st.columns([2, 1])
+    
+    with col1:
+        st.subheader(f"👨‍🎓 Student View - Question {question_idx + 1}")
+        
+        # Simulate student interface
+        st.markdown("---")
+        
+        # Question title (if shown to students)
+        if selected_question.get('title'):
+            st.write(f"**{selected_question.get('title')}**")
+        
+        # Question text
+        st.write(selected_question.get('question_text', 'No question text'))
+        
+        # Answer interface based on type
+        question_type = selected_question.get('type', 'No type')
+        
+        if question_type == 'multiple_choice':
+            choices = selected_question.get('choices', [])
+            if choices:
+                st.write("**Select your answer:**")
+                # Simulate radio button selection
+                student_answer = st.radio(
+                    "Choose one:",
+                    choices,
+                    key=f"student_answer_{question_idx}",
+                    label_visibility="collapsed"
+                )
+                
+                # Show if answer is correct (for preview)
+                if student_answer == selected_question.get('correct_answer'):
+                    st.success("✅ This would be correct!")
+                else:
+                    st.error("❌ This would be incorrect")
+            else:
+                st.error("No choices available")
+        
+        elif question_type == 'numerical':
+            st.write("**Enter your numerical answer:**")
+            student_numerical = st.number_input(
+                "Answer:",
+                key=f"student_numerical_{question_idx}",
+                format="%.4f"
+            )
+            
+            # Check if within tolerance
+            try:
+                correct_value = float(selected_question.get('correct_answer', 0))
+                tolerance = selected_question.get('tolerance', 0.05)
+                if abs(student_numerical - correct_value) <= tolerance:
+                    st.success(f"✅ Within tolerance of {correct_value}")
+                else:
+                    st.error(f"❌ Outside tolerance of {correct_value} ± {tolerance}")
+            except:
+                st.warning("Cannot validate - check correct answer format")
+        
+        elif question_type == 'true_false':
+            st.write("**Select True or False:**")
+            student_tf = st.radio(
+                "Your answer:",
+                ["True", "False"],
+                key=f"student_tf_{question_idx}"
+            )
+            
+            if student_tf == selected_question.get('correct_answer'):
+                st.success("✅ This would be correct!")
+            else:
+                st.error("❌ This would be incorrect")
+        
+        else:
+            st.write("**Enter your answer:**")
+            student_text = st.text_input(
+                "Answer:",
+                key=f"student_text_{question_idx}"
+            )
+        
+        st.markdown("---")
+        st.caption(f"Points: {selected_question.get('points', 1)} | Difficulty: {selected_question.get('difficulty', 'Medium')}")
+    
+    with col2:
+        st.subheader("🔧 Quick Edit")
+        
+        # Quick editing options
+        quick_edit_title = st.text_input(
+            "Title:",
+            value=selected_question.get('title', ''),
+            key=f"quick_title_{question_idx}"
+        )
+        
+        quick_edit_type = st.selectbox(
+            "Type:",
+            ["multiple_choice", "numerical", "true_false", "short_answer"],
+            index=["multiple_choice", "numerical", "true_false", "short_answer"].index(
+                selected_question.get('type', 'multiple_choice')
+            ),
+            key=f"quick_type_{question_idx}"
+        )
+        
+        quick_edit_points = st.number_input(
+            "Points:",
+            value=selected_question.get('points', 1),
+            min_value=0,
+            max_value=10,
+            key=f"quick_points_{question_idx}"
+        )
+        
+        if st.button("🔄 Switch to Teacher View", key=f"switch_teacher_{question_idx}"):
+            st.session_state.view_mode = "👨‍🏫 Teacher View"
+            st.rerun()
+        
+        if st.button("📝 Full Edit Mode", key=f"full_edit_{question_idx}"):
+            st.session_state.view_mode = "👨‍🏫 Teacher View"
+            st.rerun()
+
+def render_raw_data_view(selected_question, question_idx, questions):
+    """Render raw data view for debugging"""
+    
+    col1, col2 = st.columns([1, 1])
+    
+    with col1:
+        st.subheader(f"🔧 Raw Data - Question {question_idx + 1}")
+        
+        # Show complete JSON structure
+        st.json(selected_question)
+    
+    with col2:
+        st.subheader("📊 Data Analysis")
+        
+        # Analyze question structure
+        st.write("**Field Analysis:**")
+        
+        required_fields = ['title', 'question_text', 'type', 'correct_answer']
+        optional_fields = ['choices', 'points', 'difficulty', 'feedback_correct', 'feedback_incorrect', 'tolerance']
+        
+        st.write("**Required Fields:**")
+        for field in required_fields:
+            if field in selected_question and selected_question[field]:
+                st.write(f"  ✅ {field}: Present")
+            else:
+                st.write(f"  ❌ {field}: Missing")
+        
+        st.write("**Optional Fields:**")
+        for field in optional_fields:
+            if field in selected_question and selected_question[field]:
+                st.write(f"  ✅ {field}: Present")
+            else:
+                st.write(f"  ⚪ {field}: Not set")
+        
+        # Type-specific validation
+        question_type = selected_question.get('type', 'No type')
+        
+        if question_type == 'multiple_choice':
+            choices = selected_question.get('choices', [])
+            correct_answer = selected_question.get('correct_answer', '')
+            
+            st.write("**Multiple Choice Validation:**")
+            st.write(f"  Choices count: {len(choices)}")
+            st.write(f"  Correct answer in choices: {correct_answer in choices}")
+            
+            if len(choices) < 2:
+                st.error("❌ Multiple choice needs at least 2 choices")
+            if correct_answer not in choices:
+                st.error("❌ Correct answer not in choices list")
+
+def render_analysis_view(selected_question, question_idx, questions):
+    """Render analysis view with statistics and insights"""
+    
+    col1, col2 = st.columns([1, 1])
+    
+    with col1:
+        st.subheader(f"📊 Question Analysis - Question {question_idx + 1}")
+        
+        # Question statistics
+        st.write("**Question Statistics:**")
+        
+        question_text = selected_question.get('question_text', '')
+        st.write(f"Text length: {len(question_text)} characters")
+        st.write(f"Word count: {len(question_text.split()) if question_text else 0}")
+        
+        # Type distribution
+        question_type = selected_question.get('type', 'No type')
+        st.write(f"Question type: {question_type}")
+        
+        # Difficulty analysis
+        difficulty = selected_question.get('difficulty', 'Medium')
+        st.write(f"Difficulty level: {difficulty}")
+        
+        # Points analysis
+        points = selected_question.get('points', 1)
+        st.write(f"Point value: {points}")
+        
+        # Choice analysis for multiple choice
+        if question_type == 'multiple_choice':
+            choices = selected_question.get('choices', [])
+            st.write(f"Number of choices: {len(choices)}")
+            
+            if choices:
+                avg_choice_length = sum(len(choice) for choice in choices) / len(choices)
+                st.write(f"Average choice length: {avg_choice_length:.1f} characters")
+    
+    with col2:
+        st.subheader("📈 Dataset Overview")
+        
+        # Analyze all questions
+        total_questions = len(questions)
+        st.write(f"**Total Questions:** {total_questions}")
+        
+        # Type distribution
+        type_counts = {}
+        difficulty_counts = {}
+        total_points = 0
+        
+        for q in questions:
+            q_type = q.get('type', 'unknown')
+            type_counts[q_type] = type_counts.get(q_type, 0) + 1
+            
+            difficulty = q.get('difficulty', 'Medium')
+            difficulty_counts[difficulty] = difficulty_counts.get(difficulty, 0) + 1
+            
+            total_points += q.get('points', 1)
+        
+        st.write("**Question Types:**")
+        for q_type, count in type_counts.items():
+            percentage = (count / total_questions) * 100
+            st.write(f"  {q_type}: {count} ({percentage:.1f}%)")
+        
+        st.write("**Difficulty Distribution:**")
+        for difficulty, count in difficulty_counts.items():
+            percentage = (count / total_questions) * 100
+            st.write(f"  {difficulty}: {count} ({percentage:.1f}%)")
+        
+        st.write(f"**Total Points:** {total_points}")
+        st.write(f"**Average Points per Question:** {total_points / total_questions:.1f}")
+
+def render_workflow_completion():
+    """Professional dashboard for results, corrections, and export (modularized)"""
+
+    st.markdown(
+        """
+        <div style="margin-top:2rem;margin-bottom:1.5rem;">
+            <h3 style="color:#1f77b4;margin-bottom:0.5rem;">📊 Review Summary & Export</h3>
+            <hr style="border:1px solid #e0e0e0;margin:0.5rem 0 1.5rem 0;">
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    questions_data = st.session_state.get('questions_data', {})
+    corrections_made = st.session_state.get('latex_corrections_made', 0)
+    math_results = st.session_state.get('math_validation_results', {})
+    questions = questions_data.get('questions', [])
+    total_questions = len(questions)
+    latex_examples = st.session_state.get('latex_examples', [])
+
+    # --- Metrics Row ---
+    math_valid = math_results.get('valid', 0)
+    math_invalid = math_results.get('invalid', 0)
+    from components.results.results_dashboard import render_results_metrics
+    render_results_metrics(total_questions, corrections_made, math_valid, math_invalid)
+
+    # --- LaTeX Correction Examples ---
+    from components.latex.latex_correction_display import render_latex_correction_examples
+    render_latex_correction_examples(corrections_made, latex_examples)
+
+    # --- Math Validation Results ---
+    if math_results:
+        render_math_validation(math_results)
+
+    # --- Professional Download Interface ---
+    st.markdown(
+        """
+        <div style="margin-top:2rem;">
+            <h4 style="color:#1f77b4;">Download & Export</h4>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    export_col1, export_col2 = st.columns([2, 1])
+    with export_col1:
+        st.markdown(
+            """
+            <div style="background:#f1f3f6;border-radius:8px;padding:1rem 1.5rem;">
+                <b>Ready to export your validated questions?</b><br>
+                Download the JSON file for LMS import or further review.
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    with export_col2:
+        render_download_button(questions_data)
+
+def create_question_summary(questions):
+    """Create a text summary of all questions"""
+    
+    summary_lines = []
+    summary_lines.append("QUESTION SUMMARY REPORT")
+    summary_lines.append("=" * 50)
+    summary_lines.append(f"Generated: {st.session_state.get('timestamp', 'Unknown')}")
+    summary_lines.append(f"Total Questions: {len(questions)}")
+    summary_lines.append("")
+    
+    for i, question in enumerate(questions):
+        summary_lines.append(f"QUESTION {i+1}")
+        summary_lines.append("-" * 20)
+        summary_lines.append(f"Title: {question.get('title', 'No title')}")
+        summary_lines.append(f"Type: {question.get('type', 'No type')}")
+        summary_lines.append(f"Text: {question.get('question_text', 'No text')[:100]}...")
+        
+        # Add choices for multiple choice
+        if question.get('type') == 'multiple_choice':
+            choices = question.get('choices', [])
+            summary_lines.append(f"Choices ({len(choices)}):")
+            for j, choice in enumerate(choices):
+                summary_lines.append(f"  {j+1}. {choice}")
+        
+        summary_lines.append(f"Correct Answer: {question.get('correct_answer', 'Not specified')}")
+        summary_lines.append(f"Points: {question.get('points', 'Not specified')}")
+        summary_lines.append(f"Difficulty: {question.get('difficulty', 'Not specified')}")
+        summary_lines.append("")
+    
+    return "\n".join(summary_lines)
+
+def render_main_content_navigation():
+    """Professional, consistent navigation controls at the bottom of main content (Priority 3, FIXED)"""
+    current_stage = st.session_state.get("current_stage", 3)
+    total_stages = 4  # <-- update this from 4 to 5
+    can_go_back = current_stage > 0
+    can_go_next = current_stage < total_stages - 1
+    can_complete = current_stage == total_stages - 1
+
+    # Check if prerequisites are met (validated questions)
+    prerequisites_met = has_validated_questions()
+
+    st.markdown(
+        f"""
+        <div style="
+            margin-top:2.5rem;
+            margin-bottom:1.5rem;
+            padding:1.2rem 1.5rem 1.2rem 1.5rem;
+            border-radius: 12px;
+            background: linear-gradient(90deg, #1f77b4 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(30, 60, 120, 0.08);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        ">
+            <div style="font-size:1.2rem;font-weight:600;letter-spacing:0.5px;margin-bottom:0.7rem;">
+                Stage {current_stage + 1} of {total_stages}
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    nav_col1, nav_col2, nav_col3 = st.columns([1, 1, 1])
+    with nav_col1:
+        if st.button("⬅️ Back", key="main_nav_back_btn", disabled=not can_go_back):
+            st.session_state.current_stage = max(0, current_stage - 1)
+            st.rerun()
+    with nav_col2:
+        if st.button("Next ➡️", key="main_nav_next_btn", disabled=not (can_go_next and prerequisites_met)):
+            st.session_state.current_stage = min(total_stages - 1, current_stage + 1)
+            st.rerun()
+    with nav_col3:
+        if st.button("Finish", key="main_nav_complete_btn", disabled=not (can_complete and prerequisites_met)):
+            st.success("🎉 Workflow complete! You may now export your data.")
+            # Optionally, trigger export or summary actions here
+
+def show_stage_3():
+    show_stage_banner(3, total_stages=4)
+
+    st.write("🔍 **DEBUG: Stage 3 Session State Inspection**")
+    st.write(f"🔍 Current stage: {st.session_state.get('current_stage', 'NOT_SET')}")
+
+    # Check for specific keys
+    for key in ["questions_data", "validated_questions", "json_data", "processed_questions"]:
+        value = st.session_state.get(key, None)
+        if value is None:
+            st.error(f"❌ Key '{key}' NOT FOUND in session state.")
+        else:
+            if isinstance(value, list):
+                st.success(f"✅ Key '{key}' found: list with {len(value)} items.")
+            elif isinstance(value, dict):
+                st.success(f"✅ Key '{key}' found: dict with {len(value)} keys.")
+            else:
+                st.success(f"✅ Key '{key}' found: type {type(value).__name__}, value: {str(value)[:200]}")
+
+    # Show all session state keys with types and sizes
+    st.write("🔍 **All session state keys and summary:**")
+    for k, v in st.session_state.items():
+        if isinstance(v, list):
+            st.write(f"- {k}: list, {len(v)} items")
+        elif isinstance(v, dict):
+            st.write(f"- {k}: dict, {len(v)} keys")
+        else:
+            st.write(f"- {k}: {type(v).__name__}, value: {str(v)[:200]}")
+
+    st.markdown("---")
+    # ...rest of your Stage 3 logic...
+
