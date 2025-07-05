@@ -258,17 +258,11 @@ def process_ai_response(response_text, auto_extract, clean_markdown, fix_quotes,
             st.session_state["questions_data"] = {"questions": []}
             st.warning(f"Could not parse questions for review: {e}")
 
-        # Step 6: Auto-advance to Stage 3 (Human Review & Editing) after brief success message
+        # Step 6: Auto-advance to Stage 3 (Human Review & Editing) immediately if successful
         if processed_text and processed_text.strip() and st.session_state["questions_data"]["questions"]:
-            st.success("🎉 JSON processing completed successfully!")
-            st.info("🚀 Automatically advancing to Human Review and Editing stage...")
-            st.markdown("**Processing Summary:**")
-            for step in processing_steps:
-                st.write(f"- {step}")
-            import time
-            time.sleep(1)
             st.session_state.current_stage = 2  # Stage 3 (Human Review) in UI
             st.rerun()
+            return  # Prevent any UI rendering
         else:
             st.error("❌ Processing failed - no valid JSON content extracted")
             st.warning("Please check your input and try again")
@@ -348,8 +342,12 @@ def fix_chatgpt_quirks(text):
 def display_processing_results():
     """Display processing results if completed (clean, clear next steps)"""
 
+
     if st.session_state.get("processing_completed"):
-        if st.session_state.get("questions_data") and st.session_state["questions_data"].get("questions"):
+        questions_data = st.session_state.get("questions_data")
+        has_questions = bool(questions_data and questions_data.get("questions"))
+
+        if has_questions:
             st.success("✅ **Validation complete!** Your JSON has been processed and is ready for the next step.")
         else:
             st.error("❌ **Processing failed** - No valid questions extracted from JSON")
@@ -367,87 +365,88 @@ def display_processing_results():
                 preview_text = preview[:500] + "..." if len(preview) > 500 else preview
                 st.code(preview_text, language="json")
 
-        # --- CLEAR NEXT STEP OPTIONS ---
-
-        # Inject CSS for red and secondary action bars
-        st.markdown(
-            """
-            <style>
-            .red-action-bar button {
-                width: 100%;
-                background-color: #e53935;
-                color: white;
-                font-weight: bold;
-                font-size: 1.2rem;
-                border: none;
-                border-radius: 8px;
-                height: 3rem;
-                box-shadow: 0 2px 8px rgba(229,57,53,0.08);
-                transition: background 0.2s;
-                cursor: pointer;
-                margin-top: 2rem;
-                margin-bottom: 1rem;
-            }
-            .red-action-bar button:hover {
-                background-color: #b71c1c;
-            }
-            .secondary-action-bar button {
-                width: 100%;
-                background-color: #f5f5f5;
-                color: #333;
-                font-weight: bold;
-                font-size: 1.1rem;
-                border: 2px solid #bdbdbd;
-                border-radius: 8px;
-                height: 2.8rem;
-                margin-bottom: 2rem;
-                margin-top: 0.5rem;
-                transition: background 0.2s;
-                cursor: pointer;
-            }
-            .secondary-action-bar button:hover {
-                background-color: #e0e0e0;
-            }
-            </style>
-            """,
-            unsafe_allow_html=True,
-        )
-
-        # Layout for next step buttons
-        col1, col2 = st.columns([2, 1])
-        with col1:
-            continue_btn = st.markdown(
+        # Only show manual navigation buttons if processing was successful (has_questions)
+        if has_questions:
+            # Inject CSS for red and secondary action bars
+            st.markdown(
                 """
-                <form action="" method="post" class="red-action-bar">
-                    <button type="submit" name="continue_human_review">Continue to Human Review and Editing</button>
-                </form>
-                """,
-                unsafe_allow_html=True,
-            )
-        with col2:
-            skip_btn = st.markdown(
-                """
-                <form action="" method="post" class="secondary-action-bar">
-                    <button type="submit" name="skip_to_output">Skip to Output</button>
-                </form>
+                <style>
+                .red-action-bar button {
+                    width: 100%;
+                    background-color: #e53935;
+                    color: white;
+                    font-weight: bold;
+                    font-size: 1.2rem;
+                    border: none;
+                    border-radius: 8px;
+                    height: 3rem;
+                    box-shadow: 0 2px 8px rgba(229,57,53,0.08);
+                    transition: background 0.2s;
+                    cursor: pointer;
+                    margin-top: 2rem;
+                    margin-bottom: 1rem;
+                }
+                .red-action-bar button:hover {
+                    background-color: #b71c1c;
+                }
+                .secondary-action-bar button {
+                    width: 100%;
+                    background-color: #f5f5f5;
+                    color: #333;
+                    font-weight: bold;
+                    font-size: 1.1rem;
+                    border: 2px solid #bdbdbd;
+                    border-radius: 8px;
+                    height: 2.8rem;
+                    margin-bottom: 2rem;
+                    margin-top: 0.5rem;
+                    transition: background 0.2s;
+                    cursor: pointer;
+                }
+                .secondary-action-bar button:hover {
+                    background-color: #e0e0e0;
+                }
+                </style>
                 """,
                 unsafe_allow_html=True,
             )
 
-        # Button logic using Streamlit's session state
-        continue_clicked = st.button(" ", key="continue_human_review_hidden", help="hidden", use_container_width=True)
-        skip_clicked = st.button(" ", key="skip_to_output_hidden", help="hidden", use_container_width=True)
+            # Layout for next step buttons
+            col1, col2 = st.columns([2, 1])
+            with col1:
+                continue_btn = st.markdown(
+                    """
+                    <form action="" method="post" class="red-action-bar">
+                        <button type="submit" name="continue_human_review">Continue to Human Review and Editing</button>
+                    </form>
+                    """,
+                    unsafe_allow_html=True,
+                )
+            with col2:
+                skip_btn = st.markdown(
+                    """
+                    <form action="" method="post" class="secondary-action-bar">
+                        <button type="submit" name="skip_to_output">Skip to Output</button>
+                    </form>
+                    """,
+                    unsafe_allow_html=True,
+                )
 
-        # Navigation logic (replace with your navigation manager as needed)
-        if continue_clicked:
-            NavigationManager.advance_stage(4, source="continue_human_review")
-        elif skip_clicked:
-            NavigationManager.advance_stage(4, source="skip_to_output")  # Was 5, now 4
+            # Button logic using Streamlit's session state
+            continue_clicked = st.button(" ", key="continue_human_review_hidden", help="hidden", use_container_width=True)
+            skip_clicked = st.button(" ", key="skip_to_output_hidden", help="hidden", use_container_width=True)
+
+            # Navigation logic (replace with your navigation manager as needed)
+            if continue_clicked:
+                NavigationManager.advance_stage(4, source="continue_human_review")
+            elif skip_clicked:
+                NavigationManager.advance_stage(4, source="skip_to_output")  # Was 5, now 4
 
     show_stage_banner(2, total_stages=4)
 
+
 def render_sidebar(current_stage):
-    """Render the sidebar with ONLY 4 stages. No references to validation or 5 stages."""
+    """Render the sidebar with ONLY 4 stages. Human Review is only marked complete after download."""
 
     st.sidebar.markdown("## Workflow Progress")
 
@@ -458,23 +457,52 @@ def render_sidebar(current_stage):
         "Output"
     ]
 
-    # Render each stage with correct status
+    # Determine if Human Review is completed (tied to download action)
+    human_review_complete = st.session_state.get("human_review_downloaded", False)
+
     for idx, label in enumerate(stages, 1):
-        if idx == current_stage:
-            st.sidebar.markdown(
-                f"<div style='color: #1976d2; font-weight: bold;'>➡️ Stage {idx} of 4: {label}</div>",
-                unsafe_allow_html=True,
-            )
-        elif idx < current_stage:
-            st.sidebar.markdown(
-                f"<div style='color: #388e3c; font-weight: bold;'>✔️ Stage {idx} of 4: {label}</div>",
-                unsafe_allow_html=True,
-            )
+        # Special handling for Human Review (Stage 3)
+        if idx == 3:
+            if current_stage == 3:
+                # Currently in Human Review
+                st.sidebar.markdown(
+                    f"<div style='color: #1976d2; font-weight: bold;'>➡️ Stage {idx} of 4: {label} (In Progress)</div>",
+                    unsafe_allow_html=True,
+                )
+            elif idx < current_stage:
+                # Only mark as complete if download flag is set
+                if human_review_complete:
+                    st.sidebar.markdown(
+                        f"<div style='color: #388e3c; font-weight: bold;'>✔️ Stage {idx} of 4: {label} (Completed)</div>",
+                        unsafe_allow_html=True,
+                    )
+                else:
+                    st.sidebar.markdown(
+                        f"<div style='color: #bdbdbd;'>Stage {idx} of 4: {label} (Not Completed)</div>",
+                        unsafe_allow_html=True,
+                    )
+            else:
+                st.sidebar.markdown(
+                    f"<div style='color: #bdbdbd;'>Stage {idx} of 4: {label}</div>",
+                    unsafe_allow_html=True,
+                )
         else:
-            st.sidebar.markdown(
-                f"<div style='color: #bdbdbd;'>Stage {idx} of 4: {label}</div>",
-                unsafe_allow_html=True,
-            )
+            # All other stages: normal logic
+            if idx == current_stage:
+                st.sidebar.markdown(
+                    f"<div style='color: #1976d2; font-weight: bold;'>➡️ Stage {idx} of 4: {label}</div>",
+                    unsafe_allow_html=True,
+                )
+            elif idx < current_stage:
+                st.sidebar.markdown(
+                    f"<div style='color: #388e3c; font-weight: bold;'>✔️ Stage {idx} of 4: {label}</div>",
+                    unsafe_allow_html=True,
+                )
+            else:
+                st.sidebar.markdown(
+                    f"<div style='color: #bdbdbd;'>Stage {idx} of 4: {label}</div>",
+                    unsafe_allow_html=True,
+                )
 
     st.sidebar.markdown("---")
     st.sidebar.markdown(f"**Current: {stages[current_stage-1]}**")

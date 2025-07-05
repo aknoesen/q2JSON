@@ -122,20 +122,26 @@ def create_sidebar():
     # Sidebar header with overall progress
     st.sidebar.markdown("### 📍 Workflow Progress")
     
+    # Get correct user stage mapping for progress calculation
+    user_stage, total_stages = get_user_stage_display(current_stage)
+    
     # Overall progress bar
-    progress_percentage = ((current_stage + 1) / len(stage_data)) * 100
+    progress_percentage = (user_stage / total_stages) * 100
     st.sidebar.markdown(f"""
     <div class="stage-progress-bar">
         <div class="stage-progress-fill" style="width: {progress_percentage}%;"></div>
     </div>
-    <small style="color: #6c757d;">Stage {current_stage + 1} of {len(stage_data)} ({progress_percentage:.0f}% complete)</small>
+    <small style="color: #6c757d;">Stage {user_stage} of {total_stages} ({progress_percentage:.0f}% complete)</small>
     """, unsafe_allow_html=True)
     
     st.sidebar.markdown("---")
     
+    # Get the active stage index using the mapping function
+    active_stage_idx = user_stage - 1  # Convert back to 0-based for comparison
+    
     # Individual stage indicators with enhanced visuals
     for i, stage in enumerate(stage_data):
-        if i == current_stage:
+        if i == active_stage_idx:
             # Current stage - green with animation
             st.sidebar.markdown(f"""
             <div class="stage-current">
@@ -144,7 +150,7 @@ def create_sidebar():
                 <small style="opacity: 0.8;">{stage['desc']}</small>
             </div>
             """, unsafe_allow_html=True)
-        elif i < current_stage:
+        elif i < active_stage_idx:
             # Completed stages - purple/blue 
             st.sidebar.markdown(f"""
             <div class="stage-completed">
@@ -180,7 +186,9 @@ def create_main_header():
     This tool bridges the gap between AI-generated content and educational deployment.
     """)
 
-def show_stage_banner(current_stage, total_stages=4):  # Changed default from 5 to 4
+def show_stage_banner(current_stage, total_stages=4):
+    # Use the mapping function for all banners
+    user_stage, total_stages = get_user_stage_display(current_stage)
     st.markdown(
         f"""
         <div style="
@@ -193,8 +201,47 @@ def show_stage_banner(current_stage, total_stages=4):  # Changed default from 5 
             font-size: 1.4rem;
             font-weight: 600;
         ">
-            Stage {current_stage} of {total_stages}
+            Stage {user_stage} of {total_stages}
         </div>
         """,
         unsafe_allow_html=True,
     )
+
+def get_user_stage_display(current_stage):
+    """Map internal stages to 4 user-facing stages"""
+    if current_stage == 0:
+        return (1, 4)  # "Stage 1 of 4: Prompt Builder"
+    elif current_stage == 1 or current_stage == 2:
+        return (2, 4)  # "Stage 2 of 4: AI Processing" (validation is internal)
+    elif current_stage == 3:
+        return (3, 4)  # "Stage 3 of 4: Human Review"
+    elif current_stage == 4:
+        return (4, 4)  # "Stage 4 of 4: Output"
+    else:
+        return (1, 4)  # Fallback
+
+def render_sidebar(current_stage):
+    st.sidebar.markdown("## Workflow Progress")
+    stages = [
+        "Prompt Builder",
+        "AI Processing",
+        "Human Review and Editing",
+        "Output"
+    ]
+    
+    # Get correct user stage mapping
+    user_stage, total_stages = get_user_stage_display(current_stage)
+    
+    # FIXED LOGIC: Use correct comparison for highlighting
+    for idx, stage_name in enumerate(stages):
+        display_number = idx + 1  # 1-based for display
+        
+        # Convert user_stage back to 0-based index for comparison with idx
+        active_stage_idx = user_stage - 1
+        
+        if idx < active_stage_idx:
+            st.sidebar.success(f"✅ Stage {display_number} of {total_stages}: {stage_name}\nCompleted successfully")
+        elif idx == active_stage_idx:
+            st.sidebar.info(f"🟢 Stage {display_number} of {total_stages}: {stage_name}\nCurrently active")
+        else:
+            st.sidebar.warning(f"⏳ Stage {display_number} of {total_stages}: {stage_name}\nPending completion")

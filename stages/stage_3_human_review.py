@@ -5,7 +5,7 @@ import copy
 from navigation.manager import NavigationManager
 from modules.latex_corrector import LaTeXCorrector
 from utils.download_utils import render_download_button
-from utils.ui_helpers import show_stage_banner
+from utils.ui_helpers import get_user_stage_display, show_stage_banner
 
 
 
@@ -28,15 +28,17 @@ except ImportError:
 
 def render_human_review():
     """Render the complete Human Review & Editing stage"""
-    # Always show correct stage number: Human Review is Stage 3 of 4
-    show_stage_banner(3, total_stages=4)
+    # Always show correct stage number: Human Review is Stage 3 of 4 (1-based for display)
+    show_stage_banner(st.session_state.current_stage)
 
     # Progress indicator
     progress = (st.session_state.current_stage + 1) / 4
     st.progress(progress)
-    st.markdown(f"**Stage {st.session_state.current_stage + 1} of 4**: Human Review & Editing")
-
-    st.header("👥 Human Review & Editing")
+    # --- FIX: Content title now matches header and uses 1-based index ---
+    from utils.ui_helpers import get_user_stage_display
+    stage_num, total_stages = get_user_stage_display(st.session_state.current_stage)
+    st.markdown(f"**Stage {stage_num} of {total_stages}**: Human Review & Editing")
+    st.header(f"Stage {stage_num} of {total_stages}: Human Review & Editing")
 
     # Check if we have validated questions from Stage 2
     if not has_validated_questions():
@@ -816,7 +818,7 @@ def save_question_from_widgets(selected_question, question_idx):
             'points': st.session_state.get(f"points_{question_idx}", selected_question.get('points', 1)),
             'difficulty': st.session_state.get(f"difficulty_{question_idx}", selected_question.get('difficulty', 'Medium')),
             'feedback_correct': st.session_state.get(f"feedback_correct_{question_idx}", selected_question.get('feedback_correct', '')),
-            'feedback_incorrect': st.session_state.get(f"feedback_incorrect_{question_idx}", selected_question.get('feedback_incorrect', ''))
+            'feedback_incorrect': st.session_state.get(f"feedback_incorrect_{question_idx}", selected_question.get('feedback_incorrect', '')),
         }
         
         # Handle type-specific fields
@@ -1510,13 +1512,16 @@ def create_question_summary(questions):
 def render_main_content_navigation():
     """Professional, consistent navigation controls at the bottom of main content (Priority 3, FIXED)"""
     current_stage = st.session_state.get("current_stage", 3)
-    total_stages = 4  # <-- update this from 4 to 5
+    total_stages = 4
     can_go_back = current_stage > 0
     can_go_next = current_stage < total_stages - 1
     can_complete = current_stage == total_stages - 1
 
     # Check if prerequisites are met (validated questions)
     prerequisites_met = has_validated_questions()
+
+    # Get correct user stage display
+    user_stage, total_stages = get_user_stage_display(current_stage)
 
     st.markdown(
         f"""
@@ -1533,7 +1538,7 @@ def render_main_content_navigation():
             align-items: center;
         ">
             <div style="font-size:1.2rem;font-weight:600;letter-spacing:0.5px;margin-bottom:0.7rem;">
-                Stage {current_stage + 1} of {total_stages}
+                Stage {user_stage} of {total_stages}
             </div>
         </div>
         """,
@@ -1553,6 +1558,7 @@ def render_main_content_navigation():
         if st.button("Finish", key="main_nav_complete_btn", disabled=not (can_complete and prerequisites_met)):
             st.success("🎉 Workflow complete! You may now export your data.")
             # Optionally, trigger export or summary actions here
+
 
 def show_stage_3():
     show_stage_banner(3, total_stages=4)

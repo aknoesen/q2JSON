@@ -14,6 +14,13 @@ from utils.ui_helpers import load_css, create_sidebar, create_main_header, show_
 from modules.latex_corrector import LaTeXCorrector
 
 def main():
+    st.write(f"DEBUG: App starting - current_stage = {st.session_state.get('current_stage', 'NOT_SET')}")
+    # Initialize session state
+    if "current_stage" not in st.session_state:
+        st.session_state.current_stage = 0
+        st.write("DEBUG: Initialized current_stage to 0")
+    else:
+        st.write(f"DEBUG: Found existing current_stage = {st.session_state.current_stage}")
     """Main application entry point - Clean and Simple!"""
     if "current_stage" not in st.session_state:
         st.session_state.current_stage = 0
@@ -36,10 +43,15 @@ def main():
     create_main_header()
 
     # --- DEBUG: Show current stage before routing ---
-    st.write(f"🔍 DEBUG: app.py - current_stage = {st.session_state.get('current_stage', 'NOT_SET')}")
+    previous_stage = st.session_state.get('_previous_stage', None)
+    current_stage = st.session_state.get('current_stage', 0)
+    if previous_stage is not None and previous_stage != current_stage:
+        st.write(f"DEBUG: Stage changed from {previous_stage} to {current_stage}")
+    st.session_state['_previous_stage'] = current_stage
+
+    st.write(f"🔍 DEBUG: app.py - current_stage = {current_stage}")
 
     # Route to correct stage - NO COMPLEX INDENTATION!
-    current_stage = st.session_state.get("current_stage", 0)
     if current_stage == 0:
         st.write("🔍 DEBUG: app.py - Calling render_prompt_builder()")
         render_prompt_builder()
